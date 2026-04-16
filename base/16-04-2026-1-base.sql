@@ -153,6 +153,8 @@ CREATE TABLE statut_demande(
    FOREIGN KEY(id_demande) REFERENCES demande(id_demande)
 );
 
+
+
 CREATE SEQUENCE seq_type_visa START 1;
 CREATE SEQUENCE seq_situation_famille START 1;
 CREATE SEQUENCE seq_categorie_demande START 1;

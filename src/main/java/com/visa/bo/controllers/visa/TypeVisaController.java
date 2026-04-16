@@ -1,24 +1,17 @@
 package com.visa.bo.controllers.visa;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.visa.bo.models.visa.TypeVisa;
 import com.visa.bo.repositories.visa.TypeVisaRepository;
 
-@RestController
-@RequestMapping("/api/type-visas")
+@Controller
 public class TypeVisaController {
     private final TypeVisaRepository typeVisaRepository;
 
@@ -26,49 +19,77 @@ public class TypeVisaController {
         this.typeVisaRepository = typeVisaRepository;
     }
 
-    @GetMapping
-    public List<TypeVisa> list() {
-        return typeVisaRepository.findAll();
+    @GetMapping("/")
+    public String index() {
+        return "redirect:/type-visa";
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<TypeVisa> getById(@PathVariable("id") String id) {
-        Optional<TypeVisa> typeVisa = typeVisaRepository.findById(id);
-        return typeVisa.map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    @GetMapping("/type-visa")
+    public String typeVisaList(Model model) {
+        List<TypeVisa> types = typeVisaRepository.findAll();
+        model.addAttribute("types", types);
+        model.addAttribute("activePage", "type-visa");
+        model.addAttribute("pageTitle", "Liste des types de visa");
+        model.addAttribute("headerTitle", "Visa Backoffice");
+        model.addAttribute("headerSubtitle", "Gestion des demandes");
+        model.addAttribute("showBack", true);
+        model.addAttribute("backHref", "/");
+        model.addAttribute("backLabel", "Retour a l'accueil");
+        model.addAttribute("footerRight", "Types de visa");
+        model.addAttribute("contentPage", "/WEB-INF/jsp/pages/type-visa-content.jsp");
+        return "layout/main";
     }
 
-    @PostMapping
-    public ResponseEntity<TypeVisa> create(@RequestBody TypeVisa typeVisa) {
-        if (typeVisa.getIdTypeVisa() == null || typeVisa.getIdTypeVisa().isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        if (typeVisaRepository.existsById(typeVisa.getIdTypeVisa())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-        TypeVisa saved = typeVisaRepository.save(typeVisa);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    @GetMapping("/type-visa/ajout")
+    public String typeVisaForm(Model model) {
+        populateTypeVisaFormLayout(model, "Ajout type visa");
+        return "layout/main";
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<TypeVisa> update(
-        @PathVariable("id") String id,
-        @RequestBody TypeVisa typeVisa
+    @PostMapping("/type-visa/ajout")
+    public String typeVisaCreate(
+        @RequestParam("idTypeVisa") String idTypeVisa,
+        @RequestParam("libelle") String libelle,
+        Model model
     ) {
-        if (!typeVisaRepository.existsById(id)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        String trimmedId = idTypeVisa == null ? "" : idTypeVisa.trim();
+        String trimmedLibelle = libelle == null ? "" : libelle.trim();
+
+        if (trimmedLibelle.isBlank()) {
+            model.addAttribute("error", "Libelle est obligatoire.");
+            model.addAttribute("idTypeVisa", trimmedId);
+            model.addAttribute("libelle", trimmedLibelle);
+            populateTypeVisaFormLayout(model, "Ajout type visa");
+            return "layout/main";
         }
-        typeVisa.setIdTypeVisa(id);
-        TypeVisa saved = typeVisaRepository.save(typeVisa);
-        return ResponseEntity.ok(saved);
+
+        String finalId = trimmedId;
+        if (finalId.isBlank()) {
+            finalId = TypeVisa.nextId();
+        } else if (typeVisaRepository.existsById(finalId)) {
+            model.addAttribute("error", "Cet identifiant existe deja.");
+            model.addAttribute("idTypeVisa", finalId);
+            model.addAttribute("libelle", trimmedLibelle);
+            populateTypeVisaFormLayout(model, "Ajout type visa");
+            return "layout/main";
+        }
+
+        TypeVisa typeVisa = new TypeVisa();
+        typeVisa.setIdTypeVisa(finalId);
+        typeVisa.setLibelle(trimmedLibelle);
+        typeVisaRepository.save(typeVisa);
+        return "redirect:/type-visa";
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") String id) {
-        if (!typeVisaRepository.existsById(id)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        typeVisaRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    private void populateTypeVisaFormLayout(Model model, String pageTitle) {
+        model.addAttribute("activePage", "type-visa-add");
+        model.addAttribute("pageTitle", pageTitle);
+        model.addAttribute("headerTitle", "Visa Backoffice");
+        model.addAttribute("headerSubtitle", "Gestion des demandes");
+        model.addAttribute("showBack", true);
+        model.addAttribute("backHref", "/type-visa");
+        model.addAttribute("backLabel", "Retour a la liste");
+        model.addAttribute("footerRight", "Ajout type visa");
+        model.addAttribute("contentPage", "/WEB-INF/jsp/pages/type-visa-form.jsp");
     }
 }

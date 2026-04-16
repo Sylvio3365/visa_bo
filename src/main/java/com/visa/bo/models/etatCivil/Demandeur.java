@@ -9,9 +9,17 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import com.visa.bo.models.ClassMapTable;
+
 @Entity
 @Table(name = "demandeur")
 public class Demandeur {
+    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("demandeur", "id_demandeur", "DEM", 6) {};
+
+    public static String nextId() {
+        return ID_GENERATOR.generateId();
+    }
+
     @Id
     @Column(name = "id_demandeur", length = 50)
     private String idDemandeur;

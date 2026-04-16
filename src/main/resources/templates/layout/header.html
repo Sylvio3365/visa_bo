@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header class="bo-header" th:fragment="header(title, subtitle, showBack, backHref, backLabel, userLabel)">
+    <div class="brand">
+        <div class="brand-mark">VB</div>
+        <div>
+            <div class="brand-title" th:text="${title}">Visa Backoffice</div>
+            <div class="brand-subtitle" th:text="${subtitle}">Gestion des demandes</div>
+        </div>
+    </div>
+    <div class="bo-header-actions">
+        <span class="status-chip"><span class="status-dot"></span>En ligne</span>
+        <a class="back-link" th:if="${showBack}" th:href="${backHref}" th:text="${backLabel}">Retour a l'accueil</a>
+        <span class="user-chip" th:if="${!showBack}" th:text="${userLabel}">Agent Admin</span>
+    </div>
+</header>
+</body>
+</html>
