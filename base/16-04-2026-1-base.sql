@@ -23,7 +23,7 @@ CREATE TABLE categorie_demande(
 
 CREATE TABLE piece(
    id_piece VARCHAR(50),
-   libelle VARCHAR(150) NOT NULL,
+   libelle VARCHAR(250) NOT NULL,
    id_type_visa VARCHAR(50) set default null,
    PRIMARY KEY(id_piece),
    FOREIGN KEY(id_type_visa) REFERENCES type_visa(id_type_visa)

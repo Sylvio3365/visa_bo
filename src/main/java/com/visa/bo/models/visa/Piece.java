@@ -14,7 +14,7 @@ public class Piece {
     @Column(name = "id_piece", length = 50)
     private String idPiece;
 
-    @Column(name = "libelle", nullable = false, length = 50)
+    @Column(name = "libelle", nullable = false, length = 250)
     private String libelle;
 
     @ManyToOne
