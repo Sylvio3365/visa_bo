@@ -1,4 +1,4 @@
-package com.visa.bo.models.demande;
+package com.visa.bo.models.piece;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -7,18 +7,18 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class CheckPieceId implements Serializable {
-    @Column(name = "id_demande_resident", length = 50)
-    private String idDemandeResident;
+    @Column(name = "id_demande", length = 50)
+    private String idDemande;
 
     @Column(name = "id_piece", length = 50)
     private String idPiece;
 
-    public String getIdDemandeResident() {
-        return idDemandeResident;
+    public String getIdDemande() {
+        return idDemande;
     }
 
-    public void setIdDemandeResident(String idDemandeResident) {
-        this.idDemandeResident = idDemandeResident;
+    public void setIdDemande(String idDemande) {
+        this.idDemande = idDemande;
     }
 
     public String getIdPiece() {
@@ -38,12 +38,12 @@ public class CheckPieceId implements Serializable {
             return false;
         }
         CheckPieceId that = (CheckPieceId) o;
-        return Objects.equals(idDemandeResident, that.idDemandeResident)
+        return Objects.equals(idDemande, that.idDemande)
             && Objects.equals(idPiece, that.idPiece);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(idDemandeResident, idPiece);
+        return Objects.hash(idDemande, idPiece);
     }
 }

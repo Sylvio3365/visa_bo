@@ -1,4 +1,4 @@
-package com.visa.bo.models.demande;
+package com.visa.bo.models.piece;
 
 import com.visa.bo.models.visa.TypeVisa;
 
@@ -19,6 +19,9 @@ public class Piece {
     @Column(name = "libelle", nullable = false, length = 250)
     private String libelle;
 
+    @Column(name = "est_obligatoire", nullable = false)
+    private Integer estObligatoire;
+
     @ManyToOne
     @JoinColumn(name = "id_type_visa")
     private TypeVisa typeVisa;
@@ -37,6 +40,14 @@ public class Piece {
 
     public void setLibelle(String libelle) {
         this.libelle = libelle;
+    }
+
+    public Integer getEstObligatoire() {
+        return estObligatoire;
+    }
+
+    public void setEstObligatoire(Integer estObligatoire) {
+        this.estObligatoire = estObligatoire;
     }
 
     public TypeVisa getTypeVisa() {

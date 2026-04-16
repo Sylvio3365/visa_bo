@@ -1,4 +1,8 @@
-package com.visa.bo.models.demande;
+package com.visa.bo.models.piece;
+
+import java.time.LocalDate;
+
+import com.visa.bo.models.demande.Demande;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -15,9 +19,9 @@ public class CheckPiece {
     private CheckPieceId id;
 
     @ManyToOne(optional = false)
-    @MapsId("idDemandeResident")
-    @JoinColumn(name = "id_demande_resident", nullable = false)
-    private DemandeResident demandeResident;
+    @MapsId("idDemande")
+    @JoinColumn(name = "id_demande", nullable = false)
+    private Demande demande;
 
     @ManyToOne(optional = false)
     @MapsId("idPiece")
@@ -27,6 +31,9 @@ public class CheckPiece {
     @Column(name = "est_fourni")
     private Boolean estFourni;
 
+    @Column(name = "updated_at")
+    private LocalDate updatedAt;
+
     public CheckPieceId getId() {
         return id;
     }
@@ -35,12 +42,12 @@ public class CheckPiece {
         this.id = id;
     }
 
-    public DemandeResident getDemandeResident() {
-        return demandeResident;
+    public Demande getDemande() {
+        return demande;
     }
 
-    public void setDemandeResident(DemandeResident demandeResident) {
-        this.demandeResident = demandeResident;
+    public void setDemande(Demande demande) {
+        this.demande = demande;
     }
 
     public Piece getPiece() {
@@ -57,5 +64,13 @@ public class CheckPiece {
 
     public void setEstFourni(Boolean estFourni) {
         this.estFourni = estFourni;
+    }
+
+    public LocalDate getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDate updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -1,4 +1,4 @@
-package com.visa.bo.models.etatcivique;
+package com.visa.bo.models.etatCivil;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,7 +12,7 @@ public class Nationalite {
     @Column(name = "id_nationalite", length = 50)
     private String idNationalite;
 
-    @Column(name = "libelle", nullable = false, length = 250)
+    @Column(name = "libelle", nullable = false, length = 150)
     private String libelle;
 
     public String getIdNationalite() {

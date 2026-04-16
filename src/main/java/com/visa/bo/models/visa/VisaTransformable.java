@@ -1,8 +1,8 @@
 package com.visa.bo.models.visa;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
-import com.visa.bo.models.demande.Demande;
+import com.visa.bo.models.etatCivil.Demandeur;
 import com.visa.bo.models.passport.Passport;
 
 import jakarta.persistence.Column;
@@ -13,35 +13,35 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "visa")
-public class Visa {
+@Table(name = "visa_transformable")
+public class VisaTransformable {
     @Id
-    @Column(name = "id_visa", length = 50)
-    private String idVisa;
+    @Column(name = "id_visa_transformable", length = 50)
+    private String idVisaTransformable;
 
     @Column(name = "ref_visa", nullable = false, length = 50, unique = true)
     private String refVisa;
 
     @Column(name = "date_debut", nullable = false)
-    private LocalDateTime dateDebut;
+    private LocalDate dateDebut;
 
     @Column(name = "date_fin", nullable = false)
-    private LocalDateTime dateFin;
+    private LocalDate dateFin;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_passport", nullable = false)
     private Passport passport;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "id_demande", nullable = false)
-    private Demande demande;
+    @JoinColumn(name = "id_demandeur", nullable = false)
+    private Demandeur demandeur;
 
-    public String getIdVisa() {
-        return idVisa;
+    public String getIdVisaTransformable() {
+        return idVisaTransformable;
     }
 
-    public void setIdVisa(String idVisa) {
-        this.idVisa = idVisa;
+    public void setIdVisaTransformable(String idVisaTransformable) {
+        this.idVisaTransformable = idVisaTransformable;
     }
 
     public String getRefVisa() {
@@ -52,19 +52,19 @@ public class Visa {
         this.refVisa = refVisa;
     }
 
-    public LocalDateTime getDateDebut() {
+    public LocalDate getDateDebut() {
         return dateDebut;
     }
 
-    public void setDateDebut(LocalDateTime dateDebut) {
+    public void setDateDebut(LocalDate dateDebut) {
         this.dateDebut = dateDebut;
     }
 
-    public LocalDateTime getDateFin() {
+    public LocalDate getDateFin() {
         return dateFin;
     }
 
-    public void setDateFin(LocalDateTime dateFin) {
+    public void setDateFin(LocalDate dateFin) {
         this.dateFin = dateFin;
     }
 
@@ -76,11 +76,11 @@ public class Visa {
         this.passport = passport;
     }
 
-    public Demande getDemande() {
-        return demande;
+    public Demandeur getDemandeur() {
+        return demandeur;
     }
 
-    public void setDemande(Demande demande) {
-        this.demande = demande;
+    public void setDemandeur(Demandeur demandeur) {
+        this.demandeur = demandeur;
     }
 }

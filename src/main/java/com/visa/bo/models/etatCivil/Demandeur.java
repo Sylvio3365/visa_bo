@@ -1,4 +1,4 @@
-package com.visa.bo.models.etatcivique;
+package com.visa.bo.models.etatCivil;
 
 import java.time.LocalDate;
 
@@ -10,35 +10,38 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "personne")
-public class Personne {
+@Table(name = "demandeur")
+public class Demandeur {
     @Id
-    @Column(name = "id_personne", length = 50)
-    private String idPersonne;
+    @Column(name = "id_demandeur", length = 50)
+    private String idDemandeur;
 
-    @Column(name = "nom", nullable = false, length = 250)
+    @Column(name = "nom", length = 250)
     private String nom;
 
-    @Column(name = "prenom", nullable = false, length = 250)
+    @Column(name = "prenom", length = 250)
     private String prenom;
-
-    @Column(name = "profession", nullable = false, length = 50)
-    private String profession;
 
     @Column(name = "nom_jeune_fille", length = 50)
     private String nomJeuneFille;
 
-    @Column(name = "domicile", nullable = false, length = 50)
-    private String domicile;
-
-    @Column(name = "dtn", nullable = false)
+    @Column(name = "dtn")
     private LocalDate dtn;
 
-    @Column(name = "email", nullable = false, length = 50)
+    @Column(name = "adresse_mada", length = 250)
+    private String adresseMada;
+
+    @Column(name = "telephone", length = 50)
+    private String telephone;
+
+    @Column(name = "email", length = 50)
     private String email;
 
-    @Column(name = "telephone", nullable = false, length = 50)
-    private String telephone;
+    @Column(name = "created_at")
+    private LocalDate createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDate updatedAt;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_nationalite", nullable = false)
@@ -48,12 +51,12 @@ public class Personne {
     @JoinColumn(name = "id_situation_famille", nullable = false)
     private SituationFamille situationFamille;
 
-    public String getIdPersonne() {
-        return idPersonne;
+    public String getIdDemandeur() {
+        return idDemandeur;
     }
 
-    public void setIdPersonne(String idPersonne) {
-        this.idPersonne = idPersonne;
+    public void setIdDemandeur(String idDemandeur) {
+        this.idDemandeur = idDemandeur;
     }
 
     public String getNom() {
@@ -72,28 +75,12 @@ public class Personne {
         this.prenom = prenom;
     }
 
-    public String getProfession() {
-        return profession;
-    }
-
-    public void setProfession(String profession) {
-        this.profession = profession;
-    }
-
     public String getNomJeuneFille() {
         return nomJeuneFille;
     }
 
     public void setNomJeuneFille(String nomJeuneFille) {
         this.nomJeuneFille = nomJeuneFille;
-    }
-
-    public String getDomicile() {
-        return domicile;
-    }
-
-    public void setDomicile(String domicile) {
-        this.domicile = domicile;
     }
 
     public LocalDate getDtn() {
@@ -104,12 +91,12 @@ public class Personne {
         this.dtn = dtn;
     }
 
-    public String getEmail() {
-        return email;
+    public String getAdresseMada() {
+        return adresseMada;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setAdresseMada(String adresseMada) {
+        this.adresseMada = adresseMada;
     }
 
     public String getTelephone() {
@@ -118,6 +105,30 @@ public class Personne {
 
     public void setTelephone(String telephone) {
         this.telephone = telephone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public LocalDate getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDate createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDate getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDate updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public Nationalite getNationalite() {

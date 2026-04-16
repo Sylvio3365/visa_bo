@@ -1,6 +1,6 @@
 package com.visa.bo.models.visa;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import com.visa.bo.models.demande.Demande;
 import com.visa.bo.models.passport.Passport;
@@ -13,20 +13,20 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "visa")
-public class Visa {
+@Table(name = "carte_residence")
+public class CarteResidence {
     @Id
-    @Column(name = "id_visa", length = 50)
-    private String idVisa;
+    @Column(name = "id_carte_residence", length = 50)
+    private String idCarteResidence;
 
-    @Column(name = "ref_visa", nullable = false, length = 50, unique = true)
-    private String refVisa;
+    @Column(name = "ref_carte_residence", length = 50, unique = true)
+    private String refCarteResidence;
 
     @Column(name = "date_debut", nullable = false)
-    private LocalDateTime dateDebut;
+    private LocalDate dateDebut;
 
     @Column(name = "date_fin", nullable = false)
-    private LocalDateTime dateFin;
+    private LocalDate dateFin;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_passport", nullable = false)
@@ -36,35 +36,35 @@ public class Visa {
     @JoinColumn(name = "id_demande", nullable = false)
     private Demande demande;
 
-    public String getIdVisa() {
-        return idVisa;
+    public String getIdCarteResidence() {
+        return idCarteResidence;
     }
 
-    public void setIdVisa(String idVisa) {
-        this.idVisa = idVisa;
+    public void setIdCarteResidence(String idCarteResidence) {
+        this.idCarteResidence = idCarteResidence;
     }
 
-    public String getRefVisa() {
-        return refVisa;
+    public String getRefCarteResidence() {
+        return refCarteResidence;
     }
 
-    public void setRefVisa(String refVisa) {
-        this.refVisa = refVisa;
+    public void setRefCarteResidence(String refCarteResidence) {
+        this.refCarteResidence = refCarteResidence;
     }
 
-    public LocalDateTime getDateDebut() {
+    public LocalDate getDateDebut() {
         return dateDebut;
     }
 
-    public void setDateDebut(LocalDateTime dateDebut) {
+    public void setDateDebut(LocalDate dateDebut) {
         this.dateDebut = dateDebut;
     }
 
-    public LocalDateTime getDateFin() {
+    public LocalDate getDateFin() {
         return dateFin;
     }
 
-    public void setDateFin(LocalDateTime dateFin) {
+    public void setDateFin(LocalDate dateFin) {
         this.dateFin = dateFin;
     }
 

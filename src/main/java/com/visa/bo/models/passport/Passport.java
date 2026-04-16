@@ -2,13 +2,13 @@ package com.visa.bo.models.passport;
 
 import java.time.LocalDate;
 
-import com.visa.bo.models.etatcivique.Personne;
+import com.visa.bo.models.etatCivil.Demandeur;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -27,9 +27,9 @@ public class Passport {
     @Column(name = "expire_le", nullable = false)
     private LocalDate expireLe;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "id_personne", nullable = false, unique = true)
-    private Personne personne;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_demandeur", nullable = false)
+    private Demandeur demandeur;
 
     public String getIdPassport() {
         return idPassport;
@@ -63,11 +63,11 @@ public class Passport {
         this.expireLe = expireLe;
     }
 
-    public Personne getPersonne() {
-        return personne;
+    public Demandeur getDemandeur() {
+        return demandeur;
     }
 
-    public void setPersonne(Personne personne) {
-        this.personne = personne;
+    public void setDemandeur(Demandeur demandeur) {
+        this.demandeur = demandeur;
     }
 }
