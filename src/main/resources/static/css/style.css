@@ -1,0 +1,110 @@
+
+        :root {
+            --bg: #f7f4ee;
+            --card: #ffffff;
+            --ink: #1c1c1c;
+            --muted: #5b5b5b;
+            --accent: #0c8a7b;
+            --accent-2: #f0b429;
+            --ring: rgba(12, 138, 123, 0.2);
+        }
+
+        body {
+            font-family: "Space Grotesk", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background: radial-gradient(60% 60% at 20% 20%, #fff6db 0%, rgba(255, 246, 219, 0) 60%),
+                        radial-gradient(50% 50% at 80% 10%, #e4f3ef 0%, rgba(228, 243, 239, 0) 55%),
+                        var(--bg);
+            min-height: 100vh;
+        }
+
+        .page-shell {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 48px 20px 64px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, rgba(12, 138, 123, 0.08), rgba(240, 180, 41, 0.12));
+            border: 1px solid rgba(12, 138, 123, 0.15);
+            border-radius: 24px;
+            padding: 28px 28px 24px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            animation: float-in 450ms ease-out both;
+        }
+
+        .hero h1 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .hero .lead {
+            color: var(--muted);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(12, 138, 123, 0.12);
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .card-surface {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 22px;
+            margin-top: 24px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .table thead {
+            background: rgba(12, 138, 123, 0.08);
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .status {
+            margin-top: 12px;
+            color: var(--muted);
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes float-in {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero {
+                padding: 22px 20px;
+            }
+
+            .card-surface {
+                padding: 18px;
+            }
+        }
+    

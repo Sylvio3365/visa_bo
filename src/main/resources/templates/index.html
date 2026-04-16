@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visa BO - Accueil</title>
-    <link rel="icon" type="image/png" href="/visa/img/logo-removebg.png">
+    <link rel="icon" type="image/png" th:href="@{/img/logo-removebg.png}">
     
-    <link rel="stylesheet" href="/visa/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
 </head>
 <body>
     <div class="container mt-5 text-center">
@@ -17,11 +17,11 @@
         <p class="lead">Back-Office de gestion des demandes.</p>
         
         <div class="d-flex justify-content-center gap-3 mt-3 flex-wrap">
-            <a class="btn btn-primary btn-lg" href="/visa/type-visa.html">Voir les types de visa</a>
+            <a class="btn btn-primary btn-lg" th:href="@{/type-visa}">Voir les types de visa</a>
         </div>
     </div>
 
-    <script src="/visa/webjars/jquery/3.7.1/jquery.min.js"></script>
-    <script src="/visa/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>
