@@ -5,9 +5,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.visa.bo.models.ClassMapTable;
+
 @Entity
 @Table(name = "champs")
 public class Champs {
+    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("champs", "id_champs", "CH", 6) {};
+
+    public static String nextId() {
+        return ID_GENERATOR.generateId();
+    }
+
     @Id
     @Column(name = "id_champs", length = 50)
     private String idChamps;

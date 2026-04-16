@@ -10,16 +10,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.visa.bo.models.visa.TypeVisa;
 import com.visa.bo.repositories.visa.TypeVisaRepository;
-import com.visa.bo.services.IdSequenceService;
 
 @Controller
 public class TypeVisaController {
     private final TypeVisaRepository typeVisaRepository;
-    private final IdSequenceService idSequenceService;
 
-    public TypeVisaController(TypeVisaRepository typeVisaRepository, IdSequenceService idSequenceService) {
+    public TypeVisaController(TypeVisaRepository typeVisaRepository) {
         this.typeVisaRepository = typeVisaRepository;
-        this.idSequenceService = idSequenceService;
     }
 
     @GetMapping("/")
@@ -68,7 +65,7 @@ public class TypeVisaController {
 
         String finalId = trimmedId;
         if (finalId.isBlank()) {
-            finalId = idSequenceService.generateId("type_visa", "id_type_visa", "TV", 6);
+            finalId = TypeVisa.nextId();
         } else if (typeVisaRepository.existsById(finalId)) {
             model.addAttribute("error", "Cet identifiant existe deja.");
             model.addAttribute("idTypeVisa", finalId);
