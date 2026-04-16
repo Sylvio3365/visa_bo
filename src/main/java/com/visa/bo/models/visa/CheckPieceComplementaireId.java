@@ -1,4 +1,4 @@
-package com.visa.bo.models;
+package com.visa.bo.models.visa;
 
 import java.io.Serializable;
 import java.util.Objects;

@@ -1,6 +1,10 @@
-package com.visa.bo.models;
+package com.visa.bo.models.demande;
 
 import java.time.LocalDate;
+
+import com.visa.bo.models.etatcivique.Personne;
+import com.visa.bo.models.visa.TypeVisa;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

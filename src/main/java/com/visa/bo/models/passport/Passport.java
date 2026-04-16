@@ -1,4 +1,4 @@
-package com.visa.bo.models;
+package com.visa.bo.models.passport;
 
 import java.time.LocalDate;
 import jakarta.persistence.Column;

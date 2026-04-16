@@ -1,4 +1,4 @@
-package com.visa.bo.models;
+package com.visa.bo.models.visa;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
