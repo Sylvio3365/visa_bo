@@ -1,4 +1,4 @@
-package com.visa.bo.repositories;
+package com.visa.bo.repositories.visa;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des types de visa</title>
+    <link rel="icon" type="image/png" href="/visa/img/logo-removebg.png">
+
+    <link rel="stylesheet" href="/visa/webjars/bootstrap/5.3.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap">
+
+    <style>
+        :root {
+            --bg: #f7f4ee;
+            --card: #ffffff;
+            --ink: #1c1c1c;
+            --muted: #5b5b5b;
+            --accent: #0c8a7b;
+            --accent-2: #f0b429;
+            --ring: rgba(12, 138, 123, 0.2);
+        }
+
+        body {
+            font-family: "Space Grotesk", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background: radial-gradient(60% 60% at 20% 20%, #fff6db 0%, rgba(255, 246, 219, 0) 60%),
+                        radial-gradient(50% 50% at 80% 10%, #e4f3ef 0%, rgba(228, 243, 239, 0) 55%),
+                        var(--bg);
+            min-height: 100vh;
+        }
+
+        .page-shell {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 48px 20px 64px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, rgba(12, 138, 123, 0.08), rgba(240, 180, 41, 0.12));
+            border: 1px solid rgba(12, 138, 123, 0.15);
+            border-radius: 24px;
+            padding: 28px 28px 24px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            animation: float-in 450ms ease-out both;
+        }
+
+        .hero h1 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .hero .lead {
+            color: var(--muted);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(12, 138, 123, 0.12);
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .card-surface {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 22px;
+            margin-top: 24px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .table thead {
+            background: rgba(12, 138, 123, 0.08);
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .status {
+            margin-top: 12px;
+            color: var(--muted);
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes float-in {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero {
+                padding: 22px 20px;
+            }
+
+            .card-surface {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <div class="hero">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div>
+                    <div class="pill">Type Visa</div>
+                    <h1 class="mt-3">Liste des types de visa</h1>
+                    <p class="lead mb-0">Vue simple pour consulter les types de visa disponibles.</p>
+                </div>
+                <a class="back-link" href="/visa/index.html">Retour a l'accueil</a>
+            </div>
+        </div>
+
+        <div class="card-surface">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <h2 class="h5 mb-0">Tableau</h2>
+                <button id="reload" class="btn btn-outline-success btn-sm">Recharger</button>
+            </div>
+            <div class="table-responsive mt-3">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Libelle</th>
+                        </tr>
+                    </thead>
+                    <tbody id="type-visa-body"></tbody>
+                </table>
+            </div>
+            <div id="status" class="status">Chargement...</div>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = "/visa/api/type-visas";
+        const tableBody = document.getElementById("type-visa-body");
+        const statusEl = document.getElementById("status");
+        const reloadBtn = document.getElementById("reload");
+
+        function setStatus(text) {
+            statusEl.textContent = text;
+        }
+
+        function clearTable() {
+            tableBody.innerHTML = "";
+        }
+
+        function renderRows(items) {
+            const fragment = document.createDocumentFragment();
+            items.forEach((item) => {
+                const row = document.createElement("tr");
+                const idCell = document.createElement("td");
+                const libelleCell = document.createElement("td");
+
+                idCell.textContent = item.idTypeVisa || "-";
+                libelleCell.textContent = item.libelle || "-";
+
+                row.appendChild(idCell);
+                row.appendChild(libelleCell);
+                fragment.appendChild(row);
+            });
+            tableBody.appendChild(fragment);
+        }
+
+        async function loadTypeVisa() {
+            setStatus("Chargement...");
+            clearTable();
+
+            try {
+                const response = await fetch(apiUrl, { headers: { "Accept": "application/json" } });
+                if (!response.ok) {
+                    setStatus("Erreur: reponse serveur " + response.status);
+                    return;
+                }
+                const data = await response.json();
+                if (!Array.isArray(data) || data.length === 0) {
+                    setStatus("Aucun type de visa trouve.");
+                    return;
+                }
+                renderRows(data);
+                setStatus(data.length + " element(s) charge(s).");
+            } catch (error) {
+                setStatus("Erreur: impossible de charger les donnees.");
+            }
+        }
+
+        reloadBtn.addEventListener("click", loadTypeVisa);
+        document.addEventListener("DOMContentLoaded", loadTypeVisa);
+    </script>
+
+    <script src="/visa/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

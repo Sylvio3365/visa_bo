@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.visa.bo.models.visa.TypeVisa;
-import com.visa.bo.repositories.TypeVisaRepository;
+import com.visa.bo.repositories.visa.TypeVisaRepository;
 
 @RestController
 @RequestMapping("/api/type-visas")
