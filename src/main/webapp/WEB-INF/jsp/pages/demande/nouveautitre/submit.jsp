@@ -54,7 +54,7 @@
                 <p class="mb-0"><strong>Identifiant demandeur:</strong> ${demandeForm.idDemandeur}</p>
             </div>
         </div>
-        <h1>Tokony atao mirederct vers liste na fiche demande fa mbola ts vita</h1>
+        <h1>Tokony atao miredirect vers liste na fiche demande fa mbola ts vita</h1>
         <div class="d-flex gap-2 justify-content-center pt-4">
             <button
                 onclick="window.location.href='${pageContext.request.contextPath}/demande/nouveau-titre';"
