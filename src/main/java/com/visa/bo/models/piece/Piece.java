@@ -14,7 +14,8 @@ import com.visa.bo.models.ClassMapTable;
 @Entity
 @Table(name = "piece")
 public class Piece {
-    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("piece", "id_piece", "PC", 6) {};
+    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("piece", "id_piece", "PC", 6) {
+    };
 
     public static String nextId() {
         return ID_GENERATOR.generateId();
@@ -52,6 +53,13 @@ public class Piece {
 
     public Integer getEstObligatoire() {
         return estObligatoire;
+    }
+
+    public boolean isObligatoire() {
+        if (estObligatoire == 0) {
+            return false;
+        }
+        return true;
     }
 
     public void setEstObligatoire(Integer estObligatoire) {

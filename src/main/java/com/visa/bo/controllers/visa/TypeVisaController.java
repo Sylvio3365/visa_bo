@@ -7,7 +7,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
 import com.visa.bo.models.visa.TypeVisa;
 import com.visa.bo.repositories.visa.TypeVisaRepository;
 
@@ -48,13 +47,11 @@ public class TypeVisaController {
 
     @PostMapping("/type-visa/ajout")
     public String typeVisaCreate(
-        @RequestParam("idTypeVisa") String idTypeVisa,
-        @RequestParam("libelle") String libelle,
-        Model model
-    ) {
+            @RequestParam("idTypeVisa") String idTypeVisa,
+            @RequestParam("libelle") String libelle,
+            Model model) {
         String trimmedId = idTypeVisa == null ? "" : idTypeVisa.trim();
         String trimmedLibelle = libelle == null ? "" : libelle.trim();
-
         if (trimmedLibelle.isBlank()) {
             model.addAttribute("error", "Libelle est obligatoire.");
             model.addAttribute("idTypeVisa", trimmedId);
