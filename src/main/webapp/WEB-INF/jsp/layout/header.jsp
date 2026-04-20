@@ -3,7 +3,7 @@
 
 <header class="bo-header">
     <div class="brand">
-        <div class="brand-mark">VB</div>
+        <img src="<c:url value='/img/logo_menu.png' />" alt="Visa Madagascar Logo" class="brand-logo">
         <div>
             <div class="brand-title">${headerTitle}</div>
             <div class="brand-subtitle">${headerSubtitle}</div>
@@ -14,8 +14,8 @@
         <c:if test="${showBack}">
             <a class="back-link" href="${backHref}">${backLabel}</a>
         </c:if>
-        <c:if test="${!showBack}">
+        <!-- <c:if test="${!showBack}">
             <span class="user-chip">${userLabel}</span>
-        </c:if>
+        </c:if> -->
     </div>
 </header>

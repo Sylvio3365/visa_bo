@@ -3,7 +3,9 @@ package com.visa.bo.models.demande;
 import java.time.LocalDate;
 
 import com.visa.bo.models.etatCivil.Demandeur;
+import com.visa.bo.models.passport.Passport;
 import com.visa.bo.models.visa.TypeVisa;
+import com.visa.bo.models.visa.VisaTransformable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +19,8 @@ import com.visa.bo.models.ClassMapTable;
 @Entity
 @Table(name = "demande")
 public class Demande {
-    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("demande", "id_demande", "DMD", 6) {};
+    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("demande", "id_demande", "DMD", 6) {
+    };
 
     public static String nextId() {
         return ID_GENERATOR.generateId();
@@ -48,6 +51,14 @@ public class Demande {
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_demandeur", nullable = false)
     private Demandeur demandeur;
+
+    @ManyToOne
+    @JoinColumn(name = "id_passport")
+    private Passport passport;
+
+    @ManyToOne
+    @JoinColumn(name = "id_visa_transformable")
+    private VisaTransformable visaTransformable;
 
     public String getIdDemande() {
         return idDemande;
@@ -103,5 +114,21 @@ public class Demande {
 
     public void setDemandeur(Demandeur demandeur) {
         this.demandeur = demandeur;
+    }
+
+    public com.visa.bo.models.passport.Passport getPassport() {
+        return passport;
+    }
+
+    public void setPassport(com.visa.bo.models.passport.Passport passport) {
+        this.passport = passport;
+    }
+
+    public com.visa.bo.models.visa.VisaTransformable getVisaTransformable() {
+        return visaTransformable;
+    }
+
+    public void setVisaTransformable(com.visa.bo.models.visa.VisaTransformable visaTransformable) {
+        this.visaTransformable = visaTransformable;
     }
 }

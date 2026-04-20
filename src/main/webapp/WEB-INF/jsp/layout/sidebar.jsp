@@ -4,22 +4,26 @@
 <aside class="bo-sidebar">
     <div class="sidebar-title">Navigation</div>
     <nav class="bo-nav">
-        <a class="${activePage eq 'dashboard' ? 'nav-link active' : 'nav-link'}" href="<c:url value='/'/>">Dashboard</a>
+        <a class="${activePage eq 'dashboard' ? 'nav-link active' : 'nav-link'}" href="<c:url value='/'/>"><i class="fas fa-home"></i> Dashboard</a>
         <details class="nav-group" ${activePage eq 'type-visa' || activePage eq 'type-visa-add' ? 'open' : ''}>
             <summary class="${activePage eq 'type-visa' || activePage eq 'type-visa-add' ? 'nav-link nav-group-toggle active' : 'nav-link nav-group-toggle'}">
-                Types de visa
+                <i class="fas fa-passport"></i> Types de visa
             </summary>
             <div class="nav-submenu">
-                <a class="${activePage eq 'type-visa' ? 'nav-sublink active' : 'nav-sublink'}" href="<c:url value='/type-visa'/>">Liste</a>
-                <a class="${activePage eq 'type-visa-add' ? 'nav-sublink active' : 'nav-sublink'}" href="<c:url value='/type-visa/ajout'/>">Ajout</a>
+                <a class="${activePage eq 'type-visa' ? 'nav-sublink active' : 'nav-sublink'}" href="<c:url value='/type-visa'/>"><i class="fas fa-list"></i> Liste</a>
+                <a class="${activePage eq 'type-visa-add' ? 'nav-sublink active' : 'nav-sublink'}" href="<c:url value='/type-visa/ajout'/>"><i class="fas fa-plus"></i> Ajout</a>
             </div>
         </details>
-        <a class="nav-link" href="#">Demandes</a>
-        <a class="nav-link" href="#">Demandeurs</a>
-        <a class="nav-link" href="#">Statuts</a>
+        <details class="nav-group" ${activePage eq 'demande' || activePage eq 'demande-list' || activePage eq 'nouveau-titre' ? 'open' : ''}>
+            <summary class="${activePage eq 'demande' || activePage eq 'demande-list' || activePage eq 'nouveau-titre' ? 'nav-link nav-group-toggle active' : 'nav-link nav-group-toggle'}">
+                <i class="fas fa-file-alt"></i> Demandes
+            </summary>
+            <div class="nav-submenu">
+                <a class="${activePage eq 'demande-list' ? 'nav-sublink active' : 'nav-sublink'}" href="<c:url value='/demandes'/>"><i class="fas fa-list"></i> Liste demande</a>
+                <a class="${activePage eq 'nouveau-titre' ? 'nav-sublink active' : 'nav-sublink'}" href="<c:url value='/demande/nouveau-titre'/>"><i class="fas fa-pen-to-square"></i> Nouveau titre</a>
+            </div>
+        </details>
+        <a class="nav-link" href="#"><i class="fas fa-user"></i> Demandeurs</a>
+        <a class="nav-link" href="#"><i class="fas fa-check-square"></i> Statuts</a>
     </nav>
-    <div class="bo-sidebar-footer">
-        <div class="footer-label">Derniere mise a jour</div>
-        <div class="footer-value">Aujourd'hui</div>
-    </div>
 </aside>

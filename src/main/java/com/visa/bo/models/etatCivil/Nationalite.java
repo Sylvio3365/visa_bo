@@ -10,7 +10,8 @@ import com.visa.bo.models.ClassMapTable;
 @Entity
 @Table(name = "nationalite")
 public class Nationalite {
-    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("nationalite", "id_nationalite", "NA", 6) {};
+    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("nationalite", "id_nationalite", "NA", 6) {
+    };
 
     public static String nextId() {
         return ID_GENERATOR.generateId();
@@ -22,6 +23,10 @@ public class Nationalite {
 
     @Column(name = "libelle", nullable = false, length = 150)
     private String libelle;
+
+    @Column(name = "flag", length = 2)
+    private String flag;
+
 
     public String getIdNationalite() {
         return idNationalite;
@@ -37,5 +42,13 @@ public class Nationalite {
 
     public void setLibelle(String libelle) {
         this.libelle = libelle;
+    }
+
+    public String getFlag() {
+        return flag;
+    }
+
+    public void setFlag(String flag) {
+        this.flag = flag;
     }
 }
