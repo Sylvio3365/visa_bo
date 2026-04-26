@@ -23,6 +23,16 @@
                 <a class="${activePage eq 'nouveau-titre' ? 'nav-sublink active' : 'nav-sublink'}" href="<c:url value='/demande/nouveau-titre'/>"><i class="fas fa-pen-to-square"></i> Nouveau titre</a>
             </div>
         </details>
+        <details class="nav-group" ${activePage eq 'categorie' ? 'open' : ''}>
+            <summary class="${activePage eq 'categorie' ? 'nav-link nav-group-toggle active' : 'nav-link nav-group-toggle'}">
+                <i class="fas fa-folder-open"></i> Catégories de demande
+            </summary>
+            <div class="nav-submenu">
+                <c:forEach var="categorie" items="${categories}">
+                    <a class="nav-sublink" href="<c:url value='/demandes?categorie=${categorie.idCategorie}'/>"><i class="fas fa-tag"></i> ${categorie.libelle}</a>
+                </c:forEach>
+            </div>
+        </details>
         <a class="nav-link" href="#"><i class="fas fa-user"></i> Demandeurs</a>
         <a class="nav-link" href="#"><i class="fas fa-check-square"></i> Statuts</a>
     </nav>

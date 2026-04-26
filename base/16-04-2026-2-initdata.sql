@@ -1,3 +1,4 @@
+-- Active: 1736646695640@@127.0.0.1@5432@visa_db
 
 insert INTO type_visa (id_type_visa, libelle) VALUES ('TV00000' || nextval('seq_type_visa'), 'Travailleur');
 insert INTO type_visa (id_type_visa, libelle) VALUES ('TV00000' || nextval('seq_type_visa'), 'Investisseur');
@@ -8,6 +9,7 @@ insert into situation_famille (id_situation_famille, libelle) VALUES ('SF00000' 
 
 insert into categorie_demande (id_categorie, libelle) VALUES ('CD00000' || nextval('seq_categorie_demande'), 'Nouvelle demande');
 insert into categorie_demande (id_categorie, libelle) VALUES ('CD00000' || nextval('seq_categorie_demande'), 'Duplicata');
+insert into categorie_demande (id_categorie, libelle) VALUES ('CD00000' || nextval('seq_categorie_demande'), 'Transfert de visa');
 
 insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'Malagasy');
 insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'French');
