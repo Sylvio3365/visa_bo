@@ -8,6 +8,10 @@
             <c:set var="finalDemandesBackUrl" value="${defaultDemandesUrl}" />
         </c:otherwise>
     </c:choose>
+    <c:if test="${not empty demande and not empty demande.idDemande}">
+        <c:url var="qrImageUrl" value="/demandes/${demande.idDemande}/qr" />
+        <c:url var="qrDownloadUrl" value="/demandes/${demande.idDemande}/qr/download" />
+    </c:if>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style_nouveau_titre.css">
     <style>
         .detail-badge {
@@ -106,6 +110,77 @@
             border-color: rgba(12, 138, 123, 0.35);
         }
 
+        .piece-tag-manquant {
+            color: #b91c1c;
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.34);
+        }
+
+        .qr-thumb {
+            width: 85px;
+            height: 85px;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(12, 138, 123, 0.3);
+            background: #fff;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .qr-thumb:hover {
+            transform: scale(1.05);
+        }
+
+        .qr-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.72);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 2000;
+        }
+
+        .qr-overlay.show {
+            display: flex;
+        }
+
+        .qr-overlay-content {
+            position: relative;
+            background: #fff;
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 20px 45px rgba(2, 6, 23, 0.35);
+            max-width: 90vw;
+            max-height: 90vh;
+            text-align: center;
+        }
+
+        .qr-focus-image {
+            width: min(500px, 80vw);
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 0.6rem;
+            border: 1px solid rgba(12, 138, 123, 0.3);
+        }
+
+        .qr-close-btn {
+            position: absolute;
+            top: -0.6rem;
+            right: -0.6rem;
+            border-radius: 999px;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
         .view-doc-btn {
             position: absolute;
             top: 0.7rem;
@@ -155,6 +230,12 @@
                     </form>
                 </c:if>
                 <c:if test="${isModifiable}">
+                    <a href="${pageContext.request.contextPath}/demandes/${demande.idDemande}/historique"
+                        class="btn d-inline-flex align-items-center gap-2 fw-bold px-4 border-0 shadow-sm"
+                        style="background: #1e293b; color: #fff; border-radius: 0.8rem;"
+                        title="Voir l'historique des statuts">
+                        <i class="fas fa-history"></i> Historique
+                    </a>
                     <a href="${pageContext.request.contextPath}/demandes/${demande.idDemande}/modifier"
                         class="btn d-inline-flex align-items-center gap-2 fw-bold px-4 border-0 shadow-sm"
                         style="background: #f59e0b; color: #fff; border-radius: 0.8rem;">
@@ -172,8 +253,22 @@
             <div class="col-12">
                 <div class="card shadow-sm nt-form-card">
                     <div class="card-body p-4">
-                        <h3 class="card-title nt-title mb-4"><i class="fas fa-clipboard-list me-2"></i>Informations
-                            generales</h3>
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <h3 class="card-title nt-title mb-0"><i class="fas fa-clipboard-list me-2"></i>Informations
+                                generales</h3>
+                            <c:if test="${not empty demande and not empty demande.idDemande}">
+                                <div class="position-relative">
+                                    <img src="${qrImageUrl}" alt="QR code" class="qr-thumb border rounded shadow-sm"
+                                        id="qrPreviewImage" title="Cliquez pour agrandir">
+                                    <a href="${qrDownloadUrl}"
+                                        class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow"
+                                        title="Telecharger"
+                                        style="width: 28px; height: 28px; transform: translate(30%, 30%); z-index: 5;">
+                                        <i class="fas fa-download" style="font-size: 0.75rem;"></i>
+                                    </a>
+                                </div>
+                            </c:if>
+                        </div>
                         <div class="row g-3">
                             <div class="col-md-6 col-lg-4">
                                 <label class="form-label mb-1">ID demande</label>
@@ -655,12 +750,80 @@
         </div>
     </div>
 
+    <!-- QR OVERLAY -->
+    <div class="qr-overlay" id="qrOverlay">
+        <div class="qr-overlay-content">
+            <button type="button" class="qr-close-btn" id="qrCloseBtn" title="Fermer">
+                <i class="fas fa-times"></i>
+            </button>
+            <h5 class="mb-3 fw-bold" style="color: var(--accent-strong, #0a6d61);">QR Code de la demande</h5>
+            <img src="${qrImageUrl}" alt="QR code" class="qr-focus-image">
+            <div class="mt-3">
+                <a href="${qrDownloadUrl}" class="btn btn-outline-dark btn-sm">
+                    <i class="fas fa-download me-2"></i>Telecharger le QR
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const qrPreview = document.getElementById('qrPreviewImage');
+            const qrOverlay = document.getElementById('qrOverlay');
+            const qrCloseBtn = document.getElementById('qrCloseBtn');
+
+            if (qrPreview && qrOverlay) {
+                qrPreview.addEventListener('click', function () {
+                    qrOverlay.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                });
+
+                const closeOverlay = function () {
+                    qrOverlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                };
+
+                qrCloseBtn.addEventListener('click', closeOverlay);
+
+                qrOverlay.addEventListener('click', function (e) {
+                    if (e.target === qrOverlay) {
+                        closeOverlay();
+                    }
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && qrOverlay.classList.contains('show')) {
+                        closeOverlay();
+                    }
+                });
+            }
+        });
+
         function openScanModal(libelle, id) {
             document.getElementById('targetPieceName').innerText = libelle;
             document.getElementById('targetPieceId').innerText = "ID: " + id;
             document.getElementById('uploadIdPiece').value = id;
             var modalEl = document.getElementById('scanModal');
+            var myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
+        }
+
+        function viewDocument(libelle, filename) {
+            document.getElementById('viewDocName').innerText = libelle;
+            const viewerUrl = "${pageContext.request.contextPath}/demandes/document/" + filename;
+            document.getElementById('docViewer').src = viewerUrl;
+            var viewModalObj = new bootstrap.Modal(document.getElementById('viewModal'));
+            viewModalObj.show();
+        }
+
+        function closeScanModal() {
+            var modalEl = document.getElementById('scanModal');
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+    </script>
+</body>
+</html>
             var myModal = new bootstrap.Modal(modalEl);
             myModal.show();
         }

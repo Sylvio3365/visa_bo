@@ -197,6 +197,23 @@ public class DemandeController {
         return "redirect:/demandes/" + idDemande;
     }
 
+    @GetMapping(value = "/demandes/{idDemande}/qr", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> demandeQr(@PathVariable("idDemande") String idDemande) {
+        byte[] imageBytes = demandeService.genererQr(idDemande);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .body(imageBytes);
+    }
+
+    @GetMapping(value = "/demandes/{idDemande}/qr/download", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> downloadDemandeQr(@PathVariable("idDemande") String idDemande) {
+        byte[] imageBytes = demandeService.genererQr(idDemande);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=demande-" + idDemande + "-qr.png")
+                .body(imageBytes);
+    }
+
     @GetMapping("/demandes/document/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {

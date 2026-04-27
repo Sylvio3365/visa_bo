@@ -1,20 +1,30 @@
 package com.visa.bo.services.demande;
 
 import java.util.Optional;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+
+import javax.imageio.ImageIO;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.visa.bo.models.demande.Demande;
+import com.visa.bo.models.demande.StatutDemande;
 import com.visa.bo.models.piece.CheckPiece;
 import com.visa.bo.repositories.demande.DemandeRepository;
+import com.visa.bo.repositories.demande.StatutDemandeRepository;
 import com.visa.bo.repositories.piece.CheckPieceRepository;
+import com.visa.bo.util.qr.QrCode;
+import com.visa.bo.util.wifi.WifiManager;
 
 @Service
 public class DemandeService {
@@ -27,6 +37,15 @@ public class DemandeService {
 
     @Autowired
     private CheckPieceRepository checkPieceRepository;
+
+    @Autowired
+    private StatutDemandeRepository statutDemandeRepository;
+
+    @Value("${server.port:2025}")
+    private String serverPort;
+
+    @Value("${server.servlet.context-path:}")
+    private String serverContextPath;
 
     public Page<DemandeListItem> findPaginatedDemandes(
             int page,
@@ -48,9 +67,11 @@ public class DemandeService {
                 endDate,
                 normalizeFilterValue(typeVisaFilter))
                 .map(item -> {
-                    List<CheckPiece> checkPieces = checkPieceRepository.findByDemandeIdDemande(item.getDemande().getIdDemande());
+                    List<CheckPiece> checkPieces = checkPieceRepository
+                            .findByDemandeIdDemande(item.getDemande().getIdDemande());
                     List<PieceDetailItem> piecesList = buildPieceDetailList(checkPieces);
-                    return new DemandeListItem(item.getDemande(), normalizeStatus(item.getStatut()), item.getIdStatut(), piecesList);
+                    return new DemandeListItem(item.getDemande(), normalizeStatus(item.getStatut()), item.getIdStatut(),
+                            piecesList);
                 });
     }
 
@@ -71,8 +92,45 @@ public class DemandeService {
         return pieces;
     }
 
+    public byte[] genererQr(String idDemande) {
+        try {
+            String ip = WifiManager.getCurrentIpAddress();
+            String normalizedContextPath = normalizeContextPath(serverContextPath);
+            String url = "http://" + ip + ":" + serverPort + normalizedContextPath + "/demandes/" + idDemande
+                    + "/historique";
+            BufferedImage qrImage = QrCode.generateFromUrl(url);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(qrImage, "PNG", outputStream);
+            return outputStream.toByteArray();
+        } catch (Exception e) {
+            throw new IllegalStateException("Impossible de generer le QR code pour la demande: " + idDemande, e);
+        }
+    }
+
+    private String normalizeContextPath(String contextPath) {
+        if (contextPath == null || contextPath.isBlank() || "/".equals(contextPath.trim())) {
+            return "";
+        }
+
+        String normalized = contextPath.trim();
+        if (!normalized.startsWith("/")) {
+            normalized = "/" + normalized;
+        }
+        if (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        return normalized;
+    }
+
     public List<String> findAvailableStatuses() {
         return demandeRepository.findDistinctStatusLabels();
+    }
+
+    public List<StatutDemande> findStatutHistory(String idDemande) {
+        if (idDemande == null || idDemande.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return statutDemandeRepository.findByDemandeIdDemandeOrderByDateDescIdStatutDemandeDesc(idDemande.trim());
     }
 
     public Optional<DemandeDetail> findDemandeDetail(String idDemande) {
@@ -117,7 +175,8 @@ public class DemandeService {
             }
         }
 
-        return Optional.of(new DemandeDetail(demandeOpt.get(), status, idStatut, piecesCommunes, piecesComplementaires));
+        return Optional
+                .of(new DemandeDetail(demandeOpt.get(), status, idStatut, piecesCommunes, piecesComplementaires));
     }
 
     private String normalizeStatus(String status) {
@@ -165,7 +224,8 @@ public class DemandeService {
         }
 
         public boolean isScanComplet() {
-            if (pieces.isEmpty()) return false;
+            if (pieces.isEmpty())
+                return false;
             return pieces.stream()
                     .filter(PieceDetailItem::isObligatoire)
                     .allMatch(PieceDetailItem::isUploade);
@@ -211,7 +271,8 @@ public class DemandeService {
         public boolean isScanComplet() {
             List<PieceDetailItem> all = new ArrayList<>(piecesCommunes);
             all.addAll(piecesComplementaires);
-            if (all.isEmpty()) return false;
+            if (all.isEmpty())
+                return false;
             return all.stream()
                     .filter(PieceDetailItem::isObligatoire)
                     .allMatch(PieceDetailItem::isUploade);
@@ -226,7 +287,8 @@ public class DemandeService {
         private final boolean uploade;
         private final String chemin;
 
-        public PieceDetailItem(String idPiece, String libelle, boolean obligatoire, boolean fourni, boolean uploade, String chemin) {
+        public PieceDetailItem(String idPiece, String libelle, boolean obligatoire, boolean fourni, boolean uploade,
+                String chemin) {
             this.idPiece = idPiece;
             this.libelle = libelle;
             this.obligatoire = obligatoire;
