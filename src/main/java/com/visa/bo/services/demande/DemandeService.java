@@ -187,4 +187,8 @@ public class DemandeService {
             return fourni;
         }
     }
+
+    public Optional<Demande> findById(String idDemande) {
+        return demandeRepository.findById(idDemande);
+    }
 }

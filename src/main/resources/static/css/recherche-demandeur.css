@@ -1,0 +1,230 @@
+/* Recherche Demandeur - Styles Réutilisables */
+
+.search-container {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.search-card {
+    border: 1px solid rgba(12, 138, 123, 0.18);
+    border-radius: 20px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(180deg, #ffffff 0%, #fcfffd 100%);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.search-form {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.search-form .form-group {
+    flex: 1;
+    margin: 0;
+}
+
+.search-form .form-group label {
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.search-form .form-control {
+    border-color: rgba(12, 138, 123, 0.24);
+    border-radius: 0.65rem;
+    padding: 10px 14px;
+}
+
+.search-form .form-control:focus {
+    border-color: #0a6d61;
+    box-shadow: 0 0 0 0.16rem rgba(12, 138, 123, 0.2);
+}
+
+.search-form .btn {
+    padding: 10px 20px;
+    border-radius: 0.65rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.result-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.demandeur-card {
+    border: 1px solid rgba(12, 138, 123, 0.18);
+    border-radius: 20px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(180deg, #ffffff 0%, #fcfffd 100%);
+    padding: 28px;
+    animation: float-in 450ms ease-out both;
+}
+
+.demandeur-card h3 {
+    font-weight: 700;
+    color: #0a6d61;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 28px;
+}
+
+.info-section h5 {
+    font-weight: 700;
+    color: #0a6d61;
+    margin-bottom: 16px;
+    font-size: 1rem;
+}
+
+.info-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(12, 138, 123, 0.1);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #5e5e5e;
+    font-size: 0.9rem;
+}
+
+.info-value {
+    color: #1b1b1b;
+    font-size: 0.9rem;
+}
+
+.documents-area {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 2px solid rgba(12, 138, 123, 0.1);
+}
+
+.documents-area h5 {
+    font-weight: 700;
+    color: #0a6d61;
+    margin-bottom: 16px;
+    font-size: 1rem;
+}
+
+.documents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.doc-card {
+    padding: 16px;
+    background: rgba(12, 138, 123, 0.05);
+    border-radius: 12px;
+    border-left: 4px solid #0c8a7b;
+}
+
+.doc-card h6 {
+    font-weight: 700;
+    color: #0a6d61;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.doc-card p {
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #1b1b1b;
+}
+
+.doc-card strong {
+    color: #5e5e5e;
+    font-weight: 600;
+}
+
+.action-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 2px solid rgba(12, 138, 123, 0.1);
+}
+
+.action-btns .btn {
+    border-radius: 0.65rem;
+    font-weight: 600;
+    padding: 10px 20px;
+}
+
+.action-btns .btn-primary {
+    background: #0c8a7b;
+    border-color: #0c8a7b;
+}
+
+.action-btns .btn-primary:hover {
+    background: #0a6d61;
+    border-color: #0a6d61;
+}
+
+.no-result-card {
+    border: 1px solid rgba(12, 138, 123, 0.18);
+    border-radius: 20px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(180deg, #ffffff 0%, #fcfffd 100%);
+    padding: 48px 28px;
+    text-align: center;
+}
+
+.no-result-card h3 {
+    font-weight: 700;
+    color: #0a6d61;
+    margin-bottom: 16px;
+}
+
+.no-result-card p {
+    color: #5e5e5e;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-form .btn {
+        width: 100%;
+    }
+
+    .documents-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-btns {
+        flex-direction: column;
+    }
+
+    .action-btns .btn {
+        width: 100%;
+    }
+}

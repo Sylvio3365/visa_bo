@@ -98,6 +98,11 @@ public class DemandeurService {
             throw new ValidationException(validation);
         }
 
+        // Déterminer le statut à utiliser :
+        // - Si createdFromSearch = true (recherche infructueuse) → "visa approuvé"
+        // - Sinon → "dossier cree"
+        boolean isCreatedFromSearch = dm.isCreatedFromSearch();
+
         // Traitement du demandeur
         Demandeur demandeur = creerOuRechercharDemandeur(dm);
         dm.setIdDemandeur(demandeur.getIdDemandeur());
@@ -121,7 +126,70 @@ public class DemandeurService {
         verifierEtInsererPiecesComplementaires(dm, demande);
 
         // Création du statut demande
-        creerStatutDemande(demande);
+        creerStatutDemande(demande, isCreatedFromSearch);
+
+        // Créer automatiquement une demande de catégorie si elle existe et si les etapes 7/8 sont requises
+        if (dm.getDemandCategory() != null && !dm.getDemandCategory().isBlank() && dm.isNeedsVisaCarte()) {
+            creerDemandeCategorie(demande, dm.getDemandCategory());
+        }
+    }
+
+    private void creerDemandeCategorie(Demande nouvelleDemandeParente, String category) {
+        try {
+            System.out.println("\n=== CRÉATION DEMANDE CATÉGORIE START ===");
+            System.out.println("Parent ID: " + nouvelleDemandeParente.getIdDemande());
+            System.out.println("Category: " + category);
+
+            String idCategorie;
+            if ("duplicata".equalsIgnoreCase(category)) {
+                idCategorie = "CD000002"; // Duplicata
+            } else if ("transfert-visa".equalsIgnoreCase(category)) {
+                idCategorie = "CD000003"; // Transfert de Visa
+            } else {
+                System.out.println("❌ Catégorie inconnue: " + category);
+                return;
+            }
+
+            System.out.println("✓ Catégorie ID: " + idCategorie);
+
+            Optional<CategorieDemande> categorieOpt = categorieDemandeRepository.findById(idCategorie);
+            if (!categorieOpt.isPresent()) {
+                System.out.println("❌ CategorieDemande non trouvée: " + idCategorie);
+                return;
+            }
+            System.out.println("✓ CategorieDemande trouvée: " + categorieOpt.get().getLibelle());
+
+            Demande demandeCategorie = new Demande();
+            demandeCategorie.setIdDemande(Demande.nextId());
+            System.out.println("✓ ID générée: " + demandeCategorie.getIdDemande());
+
+            demandeCategorie.setCreatedAt(LocalDate.now());
+            demandeCategorie.setUpdatedAt(LocalDate.now());
+            demandeCategorie.setParentDemande(nouvelleDemandeParente);
+            demandeCategorie.setCategorie(categorieOpt.get());
+            demandeCategorie.setTypeVisa(nouvelleDemandeParente.getTypeVisa());
+            demandeCategorie.setDemandeur(nouvelleDemandeParente.getDemandeur());
+            demandeCategorie.setPassport(nouvelleDemandeParente.getPassport());
+            demandeCategorie.setVisaTransformable(nouvelleDemandeParente.getVisaTransformable());
+
+            System.out.println("→ Sauvegarde en cours...");
+            demandeRepository.save(demandeCategorie);
+            System.out.println("✓ Demande catégorie créée: " + demandeCategorie.getIdDemande());
+
+            System.out.println("→ Création du statut...");
+            creerStatutDemande(demandeCategorie, false);
+            System.out.println("✓ Statut de la demande catégorie créé (nouvelle demande)");
+
+            System.out.println("✅ CRÉATION DEMANDE CATÉGORIE SUCCESS");
+            System.out.println("Demande catégorie finalisée: " + demandeCategorie.getIdDemande() + " pour catégorie: " + category);
+            System.out.println("=== CRÉATION DEMANDE CATÉGORIE END ===\n");
+        } catch (Exception e) {
+            System.out.println("❌ ERREUR lors de la création de la demande catégorie");
+            System.out.println("Message: " + e.getMessage());
+            System.out.println("Cause: " + (e.getCause() != null ? e.getCause().getMessage() : "N/A"));
+            e.printStackTrace();
+            System.out.println("=== CRÉATION DEMANDE CATÉGORIE FAILED ===\n");
+        }
     }
 
     private Demandeur creerOuRechercharDemandeur(DemandeForm dm) {
@@ -306,8 +374,18 @@ public class DemandeurService {
             throw new IllegalArgumentException("Type Visa non sélectionné");
         }
 
-        CategorieDemande cd = categorieDemandeRepository.findById("CD000001").orElseThrow(
-                () -> new IllegalArgumentException("Catégorie de demande 'CD000001' introuvable en base de données"));
+        String categorieId = "CD000001"; // Nouvelle demande par defaut
+        if (dm.getDemandCategory() != null && !dm.getDemandCategory().isBlank() && !dm.isNeedsVisaCarte()) {
+            if ("duplicata".equalsIgnoreCase(dm.getDemandCategory())) {
+                categorieId = "CD000002";
+            } else if ("transfert-visa".equalsIgnoreCase(dm.getDemandCategory())) {
+                categorieId = "CD000003";
+            }
+        }
+
+        final String categorieIdFinal = categorieId;
+        CategorieDemande cd = categorieDemandeRepository.findById(categorieIdFinal).orElseThrow(
+            () -> new IllegalArgumentException("Catégorie de demande '" + categorieIdFinal + "' introuvable en base de données"));
         demande.setCategorie(cd);
 
         // Charger et assigner le type de visa
@@ -402,10 +480,21 @@ public class DemandeurService {
         }
     }
 
-    private void creerStatutDemande(Demande demande) {
-        // Créer et insérer un statut demande avec le statut "dossier cree"
-        Statut statut = statutRepository.findById("ST000001").orElseThrow(
-                () -> new IllegalArgumentException("Statut 'dossier cree' introuvable"));
+    public void creerStatutDemande(Demande demande, boolean isCreatedFromSearch) {
+        String idStatut;
+        
+        // Si la demande vient d'une recherche infructueuse → "visa approuvé"
+        // Sinon → "dossier cree"
+        if (isCreatedFromSearch) {
+            // "visa approve" - ST000003
+            idStatut = "ST000003";
+        } else {
+            // "dossier cree" - ST000001
+            idStatut = "ST000001";
+        }
+        
+        Statut statut = statutRepository.findById(idStatut).orElseThrow(
+                () -> new IllegalArgumentException("Statut introuvable: " + idStatut));
 
         StatutDemande statutDemande = new StatutDemande();
         statutDemande.setIdStatutDemande(StatutDemande.nextId());

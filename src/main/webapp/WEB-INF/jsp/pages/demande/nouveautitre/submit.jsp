@@ -57,7 +57,7 @@
         <h1>Tokony atao miredirect vers liste na fiche demande fa mbola ts vita</h1>
         <div class="d-flex gap-2 justify-content-center pt-4">
             <button
-                onclick="window.location.href='${pageContext.request.contextPath}/demande/nouveau-titre';"
+                onclick="window.location.href='${pageContext.request.contextPath}/demande/Nouvelle demande';"
                 class="btn btn-primary btn-lg">
                 <i class="fas fa-plus-circle me-2"></i>Nouvelle demande
             </button>

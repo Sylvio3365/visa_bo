@@ -99,4 +99,6 @@ public interface DemandeRepository extends JpaRepository<Demande, String> {
 						""")
 		Optional<String> findLatestStatusLabelByDemandeId(@Param("idDemande") String idDemande);
 
+				Optional<Demande> findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(String idDemandeur);
+
 }
