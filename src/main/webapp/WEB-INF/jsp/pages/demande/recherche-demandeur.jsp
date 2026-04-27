@@ -157,7 +157,7 @@
                                         </a>
                                     </c:when>
                                     <c:otherwise>
-                                        <a href="<c:url value='/demande/Nouvelle demande?idDemandeur=${searchResult.demandeur.idDemandeur}'/>" 
+                                        <a href="<c:url value='/demande/Nouvelle-demande?idDemandeur=${searchResult.demandeur.idDemandeur}'/>" 
                                            class="btn btn-primary">
                                             <i class="fas fa-plus"></i> Nouvelle Demande
                                         </a>
@@ -178,12 +178,12 @@
                             <div class="action-btns" style="justify-content: center; border-top: none; padding-top: 0; margin-top: 20px;">
                                 <c:choose>
                                     <c:when test="${operationType == 'duplicata' || operationType == 'transfert-visa'}">
-                                        <a href="<c:url value='/demande/Nouvelle demande?createdFromSearch=true&type=${operationType}&needsVisaCarte=true'/>" class="btn btn-primary">
+                                        <a href="<c:url value='/demande/Nouvelle-demande?createdFromSearch=true&type=${operationType}&needsVisaCarte=true'/>" class="btn btn-primary">
                                             <i class="fas fa-plus"></i> Créer une Nouvelle Demande
                                         </a>
                                     </c:when>
                                     <c:otherwise>
-                                        <a href="<c:url value='/demande/Nouvelle demande?createdFromSearch=true'/>" class="btn btn-primary">
+                                        <a href="<c:url value='/demande/Nouvelle-demande?createdFromSearch=true'/>" class="btn btn-primary">
                                             <i class="fas fa-plus"></i> Créer une Nouvelle Demande
                                         </a>
                                     </c:otherwise>

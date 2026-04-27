@@ -37,7 +37,7 @@ WITH refs AS (
         (SELECT id_nationalite FROM nationalite ORDER BY id_nationalite LIMIT 1) AS id_nationalite,
         (SELECT id_situation_famille FROM situation_famille ORDER BY id_situation_famille LIMIT 1) AS id_situation_famille,
         COALESCE(
-            (SELECT id_categorie FROM categorie_demande WHERE lower(libelle) IN ('nouvelle demande', 'nouveau titre') ORDER BY id_categorie LIMIT 1),
+            (SELECT id_categorie FROM categorie_demande WHERE lower(libelle) IN ('Nouvelle-demande', 'nouveau titre') ORDER BY id_categorie LIMIT 1),
             (SELECT id_categorie FROM categorie_demande ORDER BY id_categorie LIMIT 1)
         ) AS id_categorie,
         (SELECT id_type_visa FROM type_visa ORDER BY id_type_visa LIMIT 1) AS id_type_visa_1,
@@ -149,7 +149,7 @@ WHERE EXISTS (SELECT 1 FROM passport p WHERE p.id_passport = d.id_passport)
 WITH refs AS (
     SELECT
         COALESCE(
-            (SELECT id_categorie FROM categorie_demande WHERE lower(libelle) IN ('nouvelle demande', 'nouveau titre') ORDER BY id_categorie LIMIT 1),
+            (SELECT id_categorie FROM categorie_demande WHERE lower(libelle) IN ('Nouvelle-demande', 'nouveau titre') ORDER BY id_categorie LIMIT 1),
             (SELECT id_categorie FROM categorie_demande ORDER BY id_categorie LIMIT 1)
         ) AS id_categorie,
         (SELECT id_type_visa FROM type_visa ORDER BY id_type_visa LIMIT 1) AS id_type_visa_1,
