@@ -48,6 +48,9 @@ public class DemandeForm {
     
     // categorie (duplicata, transfert-visa, or null)
     private String demandCategory;
+
+    // indique si les etapes 7/8 (visa + carte residence) sont requises
+    private boolean needsVisaCarte = false;
     
     // visa (pour la page de création de visa)
     private String visaRefVisa;

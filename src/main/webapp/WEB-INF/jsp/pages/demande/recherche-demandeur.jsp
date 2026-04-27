@@ -145,13 +145,13 @@
                             <div class="action-btns">
                                 <c:choose>
                                     <c:when test="${operationType == 'duplicata'}">
-                                        <a href="<c:url value='/demande/Nouvelle demande?idDemandeur=${searchResult.demandeur.idDemandeur}&type=duplicata'/>" 
+                                        <a href="<c:url value='/demande/creer-categorie?idDemandeur=${searchResult.demandeur.idDemandeur}&type=duplicata'/>" 
                                            class="btn btn-primary">
                                             <i class="fas fa-copy"></i> Créer Duplicata
                                         </a>
                                     </c:when>
                                     <c:when test="${operationType == 'transfert-visa'}">
-                                        <a href="<c:url value='/demande/Nouvelle demande?idDemandeur=${searchResult.demandeur.idDemandeur}&type=transfert-visa'/>" 
+                                        <a href="<c:url value='/demande/creer-categorie?idDemandeur=${searchResult.demandeur.idDemandeur}&type=transfert-visa'/>" 
                                            class="btn btn-primary">
                                             <i class="fas fa-exchange-alt"></i> Créer Transfert de Visa
                                         </a>
@@ -176,9 +176,18 @@
                             <h3><i class="fas fa-exclamation-circle"></i> Aucun Demandeur Trouvé</h3>
                             <p>Aucun demandeur n'a été trouvé avec le numéro: <strong>${searchNumber}</strong></p>
                             <div class="action-btns" style="justify-content: center; border-top: none; padding-top: 0; margin-top: 20px;">
-                                <a href="<c:url value='/demande/Nouvelle demande?createdFromSearch=true'/>" class="btn btn-primary">
-                                    <i class="fas fa-plus"></i> Créer une Nouvelle Demande
-                                </a>
+                                <c:choose>
+                                    <c:when test="${operationType == 'duplicata' || operationType == 'transfert-visa'}">
+                                        <a href="<c:url value='/demande/Nouvelle demande?createdFromSearch=true&type=${operationType}&needsVisaCarte=true'/>" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Créer une Nouvelle Demande
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="<c:url value='/demande/Nouvelle demande?createdFromSearch=true'/>" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Créer une Nouvelle Demande
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
                                 <button onclick="location.reload();" class="btn btn-outline-secondary">
                                     <i class="fas fa-redo"></i> Nouvelle Recherche
                                 </button>

@@ -89,5 +89,4 @@ VALUES (
     'DM000001'
 );
 
-
-select * from passport;
+select * from statut;

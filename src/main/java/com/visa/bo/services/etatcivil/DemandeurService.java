@@ -128,8 +128,8 @@ public class DemandeurService {
         // Création du statut demande
         creerStatutDemande(demande, isCreatedFromSearch);
 
-        // Créer automatiquement une demande de catégorie si elle existe
-        if (dm.getDemandCategory() != null && !dm.getDemandCategory().isBlank()) {
+        // Créer automatiquement une demande de catégorie si elle existe et si les etapes 7/8 sont requises
+        if (dm.getDemandCategory() != null && !dm.getDemandCategory().isBlank() && dm.isNeedsVisaCarte()) {
             creerDemandeCategorie(demande, dm.getDemandCategory());
         }
     }
@@ -374,8 +374,18 @@ public class DemandeurService {
             throw new IllegalArgumentException("Type Visa non sélectionné");
         }
 
-        CategorieDemande cd = categorieDemandeRepository.findById("CD000001").orElseThrow(
-                () -> new IllegalArgumentException("Catégorie de demande 'CD000001' introuvable en base de données"));
+        String categorieId = "CD000001"; // Nouvelle demande par defaut
+        if (dm.getDemandCategory() != null && !dm.getDemandCategory().isBlank() && !dm.isNeedsVisaCarte()) {
+            if ("duplicata".equalsIgnoreCase(dm.getDemandCategory())) {
+                categorieId = "CD000002";
+            } else if ("transfert-visa".equalsIgnoreCase(dm.getDemandCategory())) {
+                categorieId = "CD000003";
+            }
+        }
+
+        final String categorieIdFinal = categorieId;
+        CategorieDemande cd = categorieDemandeRepository.findById(categorieIdFinal).orElseThrow(
+            () -> new IllegalArgumentException("Catégorie de demande '" + categorieIdFinal + "' introuvable en base de données"));
         demande.setCategorie(cd);
 
         // Charger et assigner le type de visa
