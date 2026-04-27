@@ -264,7 +264,7 @@
                                     <!-- Transmettre la catégorie sélectionnée -->
                                     <input type="hidden" name="demandCategory" value="${demandCategory}">
                                     <button type="submit" class="btn btn-success btn-lg">
-                                        <i class="fas fa-arrow-right me-2"></i>Créer demande & Continuer
+                                        <i class="fas fa-arrow-right me-2"></i>Continuer
                                     </button>
                                 </form>
                             </div>

@@ -11,8 +11,10 @@ import com.visa.bo.repositories.piece.PieceRepository;
 import com.visa.bo.repositories.piece.CheckPieceRepository;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -98,6 +100,9 @@ public class DemandeurService {
             throw new ValidationException(validation);
         }
 
+        // Déterminer si c'est une modification
+        boolean isModification = dm.getIdDemande() != null && !dm.getIdDemande().isBlank();
+        
         // Déterminer le statut à utiliser :
         // - Si createdFromSearch = true (recherche infructueuse) → "visa approuvé"
         // - Sinon → "dossier cree"
@@ -119,14 +124,27 @@ public class DemandeurService {
         Demande demande = creerDemande(dm, demandeur, passport, visaTransformable);
         dm.setIdDemande(demande.getIdDemande());
 
+        // Sauvegarder les CheckPiece existantes avant suppression si modification
+        Map<String, CheckPiece> checkPiecesExistantes = new HashMap<>();
+        if (isModification) {
+            List<CheckPiece> existing = checkPieceRepository.findByDemandeIdDemande(demande.getIdDemande());
+            for (CheckPiece cp : existing) {
+                checkPiecesExistantes.put(cp.getPiece().getIdPiece(), cp);
+            }
+            checkPieceRepository.deleteByDemandeIdDemande(demande.getIdDemande());
+        }
+
         // Vérification et insertion des pièces communes
-        verifierEtInsererPiecesCommunces(dm, demande);
+        verifierEtInsererPiecesCommunces(dm, demande, checkPiecesExistantes);
 
         // Vérification et insertion des pièces complémentaires
-        verifierEtInsererPiecesComplementaires(dm, demande);
+        verifierEtInsererPiecesComplementaires(dm, demande, checkPiecesExistantes);
 
-        // Création du statut demande
-        creerStatutDemande(demande, isCreatedFromSearch);
+        // Création du statut demande (uniquement si nouvelle demande, ou si on veut tracer l'historique de modif?)
+        // Pour l'instant, on ne crée pas de nouveau statut "Dossier créé" si c'est une modification.
+        if (!isModification) {
+            creerStatutDemande(demande, isCreatedFromSearch);
+        }
 
         // Créer automatiquement une demande de catégorie si elle existe et si les etapes 7/8 sont requises
         if (dm.getDemandCategory() != null && !dm.getDemandCategory().isBlank() && dm.isNeedsVisaCarte()) {
@@ -207,6 +225,15 @@ public class DemandeurService {
             demandeur.setCreatedAt(LocalDate.now());
         }
 
+        demandeur.setNom(dm.getNom());
+        demandeur.setPrenom(dm.getPrenom());
+        demandeur.setNomJeuneFille(dm.getNomJeuneFille());
+        demandeur.setDtn(dm.getDtn());
+        demandeur.setEmail(dm.getEmail());
+        demandeur.setTelephone(dm.getTelephone());
+        demandeur.setAdresseMada(dm.getAdresseMada());
+        demandeur.setUpdatedAt(LocalDate.now());
+
         // Valider et charger les références
         if (dm.getIdNationalite() == null || dm.getIdNationalite().isBlank()) {
             throw new IllegalArgumentException("Nationalite non sélectionnée");
@@ -246,32 +273,21 @@ public class DemandeurService {
     }
 
     private Passport creerOuRechercharPassport(DemandeForm dm, Demandeur demandeur) {
+        Passport passport;
         if (dm.getIdPassport() != null && !dm.getIdPassport().isBlank()) {
-            Optional<Passport> passportExistantOpt = passportRepository.findById(dm.getIdPassport());
-            if (passportExistantOpt.isPresent()) {
-                Passport passportExistant = passportExistantOpt.get();
-
-                // Si le numero change, on cree un nouveau passport rattache au demandeur.
-                if (dm.getNumPassport() != null && !dm.getNumPassport().equals(passportExistant.getNumero())) {
-                    verifierNumeroPassportUnique(dm.getNumPassport(), null);
-                    Passport nouveauPassport = new Passport();
-                    nouveauPassport.setIdPassport(Passport.nextId());
-                    nouveauPassport.setNumero(dm.getNumPassport());
-                    nouveauPassport.setDelivreLe(dm.getDateDelivrancePassport());
-                    nouveauPassport.setExpireLe(dm.getDateExpirationPassport());
-                    nouveauPassport.setDemandeur(demandeur);
-                    return sauvegarderPassport(nouveauPassport);
-                }
-
-                return passportExistant;
+            passport = passportRepository.findById(dm.getIdPassport()).orElseThrow(
+                () -> new IllegalArgumentException("Passport introuvable: " + dm.getIdPassport()));
+            
+            // Si le numéro change, on vérifie l'unicité
+            if (dm.getNumPassport() != null && !dm.getNumPassport().equals(passport.getNumero())) {
+                verifierNumeroPassportUnique(dm.getNumPassport(), passport.getIdPassport());
             }
-            // ID en session devenu invalide (ex: rollback). On l'ignore et on recree/recherche proprement.
-            dm.setIdPassport(null);
+        } else {
+            verifierNumeroPassportUnique(dm.getNumPassport(), null);
+            passport = new Passport();
+            passport.setIdPassport(Passport.nextId());
         }
 
-        verifierNumeroPassportUnique(dm.getNumPassport(), null);
-        Passport passport = new Passport();
-        passport.setIdPassport(Passport.nextId());
         passport.setNumero(dm.getNumPassport());
         passport.setDelivreLe(dm.getDateDelivrancePassport());
         passport.setExpireLe(dm.getDateExpirationPassport());
@@ -281,35 +297,21 @@ public class DemandeurService {
 
     private VisaTransformable creerOuRechercharVisaTransformable(DemandeForm dm, Demandeur demandeur,
             Passport passport) {
+        VisaTransformable visaTransformable;
         if (dm.getIdVisaTransformable() != null && !dm.getIdVisaTransformable().isBlank()) {
-            Optional<VisaTransformable> visaTransformableExistantOpt = visaTransformableRepository
-                    .findById(dm.getIdVisaTransformable());
-            if (visaTransformableExistantOpt.isPresent()) {
-                VisaTransformable visaTransformableExistant = visaTransformableExistantOpt.get();
-
-                // Si la reference change, on cree un nouveau visa transformable.
-                if (dm.getRefVisa() != null && !dm.getRefVisa().equals(visaTransformableExistant.getRefVisa())) {
-                    verifierRefVisaUnique(dm.getRefVisa(), null);
-                    VisaTransformable nouveauVisaTransformable = new VisaTransformable();
-                    nouveauVisaTransformable.setIdVisaTransformable(VisaTransformable.nextId());
-                    nouveauVisaTransformable.setRefVisa(dm.getRefVisa());
-                    nouveauVisaTransformable.setDateDebut(dm.getDateDebut());
-                    nouveauVisaTransformable.setDateFin(dm.getDateFin());
-                    nouveauVisaTransformable.setPassport(passport);
-                    nouveauVisaTransformable.setDemandeur(demandeur);
-                    return sauvegarderVisaTransformable(nouveauVisaTransformable);
-                }
-
-                return visaTransformableExistant;
+            visaTransformable = visaTransformableRepository.findById(dm.getIdVisaTransformable()).orElseThrow(
+                () -> new IllegalArgumentException("Visa Transformable introuvable: " + dm.getIdVisaTransformable()));
+            
+            // Si la référence change, on vérifie l'unicité
+            if (dm.getRefVisa() != null && !dm.getRefVisa().equals(visaTransformable.getRefVisa())) {
+                verifierRefVisaUnique(dm.getRefVisa(), visaTransformable.getIdVisaTransformable());
             }
-
-            // ID en session devenu invalide (ex: rollback). On l'ignore et on recree/recherche proprement.
-            dm.setIdVisaTransformable(null);
+        } else {
+            verifierRefVisaUnique(dm.getRefVisa(), null);
+            visaTransformable = new VisaTransformable();
+            visaTransformable.setIdVisaTransformable(VisaTransformable.nextId());
         }
 
-        verifierRefVisaUnique(dm.getRefVisa(), null);
-        VisaTransformable visaTransformable = new VisaTransformable();
-        visaTransformable.setIdVisaTransformable(VisaTransformable.nextId());
         visaTransformable.setRefVisa(dm.getRefVisa());
         visaTransformable.setDateDebut(dm.getDateDebut());
         visaTransformable.setDateFin(dm.getDateFin());
@@ -360,13 +362,20 @@ public class DemandeurService {
 
     private Demande creerDemande(DemandeForm dm, Demandeur demandeur, Passport passport,
             VisaTransformable visaTransformable) {
-        // Créer et insérer un objet de type Demande
-        Demande demande = new Demande();
-        demande.setIdDemande(Demande.nextId());
+        // Créer ou récupérer l'objet de type Demande
+        Demande demande;
+        if (dm.getIdDemande() != null && !dm.getIdDemande().isBlank()) {
+            demande = demandeRepository.findById(dm.getIdDemande()).orElseThrow(
+                () -> new IllegalArgumentException("Demande introuvable: " + dm.getIdDemande()));
+        } else {
+            demande = new Demande();
+            demande.setIdDemande(Demande.nextId());
+            demande.setCreatedAt(LocalDate.now());
+        }
+
         demande.setDemandeur(demandeur);
         demande.setPassport(passport);
         demande.setVisaTransformable(visaTransformable);
-        demande.setCreatedAt(LocalDate.now());
         demande.setUpdatedAt(LocalDate.now());
 
         // Charger la catégorie de demande
@@ -399,7 +408,7 @@ public class DemandeurService {
         return demande;
     }
 
-    private void verifierEtInsererPiecesCommunces(DemandeForm dm, Demande demande) {
+    private void verifierEtInsererPiecesCommunces(DemandeForm dm, Demande demande, Map<String, CheckPiece> checkPiecesExistantes) {
         List<Piece> piecesCommunesAll = pieceRepository.findAllPieceCommune();
         Set<String> piecesFournies = new HashSet<>();
         List<String> erreurs = new java.util.ArrayList<>();
@@ -417,15 +426,21 @@ public class DemandeurService {
             }
 
             // Insérer dans check_piece
-            CheckPieceId checkPieceId = new CheckPieceId();
-            checkPieceId.setIdDemande(demande.getIdDemande());
-            checkPieceId.setIdPiece(piece.getIdPiece());
+            CheckPieceId checkPieceId = new CheckPieceId(demande.getIdDemande(), piece.getIdPiece());
 
             CheckPiece checkPiece = new CheckPiece();
             checkPiece.setId(checkPieceId);
             checkPiece.setDemande(demande);
             checkPiece.setPiece(piece);
             checkPiece.setEstFourni(isFournie);
+
+            // Restaurer l'état uploadé s'il existait déjà
+            CheckPiece existante = checkPiecesExistantes.get(piece.getIdPiece());
+            if (existante != null) {
+                checkPiece.setEstUploade(existante.getEstUploade());
+                checkPiece.setCheminDocument(existante.getCheminDocument());
+            }
+
             checkPiece.setUpdatedAt(LocalDate.now());
             checkPieceRepository.save(checkPiece);
         }
@@ -436,7 +451,7 @@ public class DemandeurService {
         }
     }
 
-    private void verifierEtInsererPiecesComplementaires(DemandeForm dm, Demande demande) {
+    private void verifierEtInsererPiecesComplementaires(DemandeForm dm, Demande demande, Map<String, CheckPiece> checkPiecesExistantes) {
         List<String> erreurs = new java.util.ArrayList<>();
 
         // Vérifier que le type de visa est sélectionné
@@ -462,14 +477,20 @@ public class DemandeurService {
             }
 
             // Insérer dans check_piece (toutes les pièces, fournie ou non)
-            CheckPieceId checkPieceId = new CheckPieceId();
-            checkPieceId.setIdDemande(demande.getIdDemande());
-            checkPieceId.setIdPiece(piece.getIdPiece());
+            CheckPieceId checkPieceId = new CheckPieceId(demande.getIdDemande(), piece.getIdPiece());
             CheckPiece checkPiece = new CheckPiece();
             checkPiece.setId(checkPieceId);
             checkPiece.setDemande(demande);
             checkPiece.setPiece(piece);
             checkPiece.setEstFourni(isFournie);
+
+            // Restaurer l'état uploadé s'il existait déjà
+            CheckPiece existante = checkPiecesExistantes.get(piece.getIdPiece());
+            if (existante != null) {
+                checkPiece.setEstUploade(existante.getEstUploade());
+                checkPiece.setCheminDocument(existante.getCheminDocument());
+            }
+
             checkPiece.setUpdatedAt(LocalDate.now());
             checkPieceRepository.save(checkPiece);
         }

@@ -47,7 +47,28 @@ public class DemandeService {
                 startDate,
                 endDate,
                 normalizeFilterValue(typeVisaFilter))
-                .map(item -> new DemandeListItem(item.getDemande(), normalizeStatus(item.getStatut())));
+                .map(item -> {
+                    List<CheckPiece> checkPieces = checkPieceRepository.findByDemandeIdDemande(item.getDemande().getIdDemande());
+                    List<PieceDetailItem> piecesList = buildPieceDetailList(checkPieces);
+                    return new DemandeListItem(item.getDemande(), normalizeStatus(item.getStatut()), item.getIdStatut(), piecesList);
+                });
+    }
+
+    private List<PieceDetailItem> buildPieceDetailList(List<CheckPiece> checkPieces) {
+        List<PieceDetailItem> pieces = new ArrayList<>();
+        for (CheckPiece checkPiece : checkPieces) {
+            if (checkPiece.getPiece() == null) {
+                continue;
+            }
+            pieces.add(new PieceDetailItem(
+                    checkPiece.getPiece().getIdPiece(),
+                    checkPiece.getPiece().getLibelle(),
+                    checkPiece.getPiece().isObligatoire(),
+                    Boolean.TRUE.equals(checkPiece.getEstFourni()),
+                    Boolean.TRUE.equals(checkPiece.getEstUploade()),
+                    checkPiece.getCheminDocument()));
+        }
+        return pieces;
     }
 
     public List<String> findAvailableStatuses() {
@@ -69,6 +90,9 @@ public class DemandeService {
                 .map(this::normalizeStatus)
                 .orElse("-");
 
+        String idStatut = demandeRepository.findLatestStatusIdByDemandeId(normalizedId)
+                .orElse(null);
+
         List<CheckPiece> checkPieces = checkPieceRepository.findByDemandeIdDemande(normalizedId);
         List<PieceDetailItem> piecesCommunes = new ArrayList<>();
         List<PieceDetailItem> piecesComplementaires = new ArrayList<>();
@@ -82,7 +106,9 @@ public class DemandeService {
                     checkPiece.getPiece().getIdPiece(),
                     checkPiece.getPiece().getLibelle(),
                     checkPiece.getPiece().isObligatoire(),
-                    Boolean.TRUE.equals(checkPiece.getEstFourni()));
+                    Boolean.TRUE.equals(checkPiece.getEstFourni()),
+                    Boolean.TRUE.equals(checkPiece.getEstUploade()),
+                    checkPiece.getCheminDocument());
 
             if (checkPiece.getPiece().getTypeVisa() == null) {
                 piecesCommunes.add(item);
@@ -91,7 +117,7 @@ public class DemandeService {
             }
         }
 
-        return Optional.of(new DemandeDetail(demandeOpt.get(), status, piecesCommunes, piecesComplementaires));
+        return Optional.of(new DemandeDetail(demandeOpt.get(), status, idStatut, piecesCommunes, piecesComplementaires));
     }
 
     private String normalizeStatus(String status) {
@@ -112,10 +138,14 @@ public class DemandeService {
     public static class DemandeListItem {
         private final Demande demande;
         private final String statut;
+        private final String idStatut;
+        private final List<PieceDetailItem> pieces;
 
-        public DemandeListItem(Demande demande, String statut) {
+        public DemandeListItem(Demande demande, String statut, String idStatut, List<PieceDetailItem> pieces) {
             this.demande = demande;
             this.statut = statut;
+            this.idStatut = idStatut;
+            this.pieces = pieces != null ? pieces : new ArrayList<>();
         }
 
         public Demande getDemande() {
@@ -125,18 +155,35 @@ public class DemandeService {
         public String getStatut() {
             return statut;
         }
+
+        public String getIdStatut() {
+            return idStatut;
+        }
+
+        public List<PieceDetailItem> getPieces() {
+            return pieces;
+        }
+
+        public boolean isScanComplet() {
+            if (pieces.isEmpty()) return false;
+            return pieces.stream()
+                    .filter(PieceDetailItem::isObligatoire)
+                    .allMatch(PieceDetailItem::isUploade);
+        }
     }
 
     public static class DemandeDetail {
         private final Demande demande;
         private final String statut;
+        private final String idStatut;
         private final List<PieceDetailItem> piecesCommunes;
         private final List<PieceDetailItem> piecesComplementaires;
 
-        public DemandeDetail(Demande demande, String statut, List<PieceDetailItem> piecesCommunes,
+        public DemandeDetail(Demande demande, String statut, String idStatut, List<PieceDetailItem> piecesCommunes,
                 List<PieceDetailItem> piecesComplementaires) {
             this.demande = demande;
             this.statut = statut;
+            this.idStatut = idStatut;
             this.piecesCommunes = piecesCommunes;
             this.piecesComplementaires = piecesComplementaires;
         }
@@ -149,12 +196,25 @@ public class DemandeService {
             return statut;
         }
 
+        public String getIdStatut() {
+            return idStatut;
+        }
+
         public List<PieceDetailItem> getPiecesCommunes() {
             return piecesCommunes;
         }
 
         public List<PieceDetailItem> getPiecesComplementaires() {
             return piecesComplementaires;
+        }
+
+        public boolean isScanComplet() {
+            List<PieceDetailItem> all = new ArrayList<>(piecesCommunes);
+            all.addAll(piecesComplementaires);
+            if (all.isEmpty()) return false;
+            return all.stream()
+                    .filter(PieceDetailItem::isObligatoire)
+                    .allMatch(PieceDetailItem::isUploade);
         }
     }
 
@@ -163,12 +223,16 @@ public class DemandeService {
         private final String libelle;
         private final boolean obligatoire;
         private final boolean fourni;
+        private final boolean uploade;
+        private final String chemin;
 
-        public PieceDetailItem(String idPiece, String libelle, boolean obligatoire, boolean fourni) {
+        public PieceDetailItem(String idPiece, String libelle, boolean obligatoire, boolean fourni, boolean uploade, String chemin) {
             this.idPiece = idPiece;
             this.libelle = libelle;
             this.obligatoire = obligatoire;
             this.fourni = fourni;
+            this.uploade = uploade;
+            this.chemin = chemin;
         }
 
         public String getIdPiece() {
@@ -185,6 +249,14 @@ public class DemandeService {
 
         public boolean isFourni() {
             return fourni;
+        }
+
+        public boolean isUploade() {
+            return uploade;
+        }
+
+        public String getChemin() {
+            return chemin;
         }
     }
 

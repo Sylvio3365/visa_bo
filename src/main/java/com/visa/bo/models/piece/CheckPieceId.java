@@ -13,6 +13,13 @@ public class CheckPieceId implements Serializable {
     @Column(name = "id_piece", length = 50)
     private String idPiece;
 
+    public CheckPieceId() {}
+
+    public CheckPieceId(String idDemande, String idPiece) {
+        this.idDemande = idDemande;
+        this.idPiece = idPiece;
+    }
+
     public String getIdDemande() {
         return idDemande;
     }

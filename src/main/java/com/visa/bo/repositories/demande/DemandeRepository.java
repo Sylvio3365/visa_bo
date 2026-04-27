@@ -19,10 +19,12 @@ public interface DemandeRepository extends JpaRepository<Demande, String> {
 				Demande getDemande();
 
 				String getStatut();
+
+				String getIdStatut();
 		}
 
 		@Query(value = """
-						select d as demande, s.libelle as statut
+						select d as demande, s.libelle as statut, s.idStatut as idStatut
 						from Demande d
 						left join d.demandeur dm
 						left join d.typeVisa tv
@@ -85,6 +87,19 @@ public interface DemandeRepository extends JpaRepository<Demande, String> {
 		@EntityGraph(attributePaths = { "demandeur", "typeVisa", "categorie", "passport", "visaTransformable" })
 		@Query("select d from Demande d where d.idDemande = :idDemande")
 		Optional<Demande> findDetailedByIdDemande(@Param("idDemande") String idDemande);
+
+		@Query("""
+						select s.idStatut
+						from StatutDemande sd
+						join sd.statut s
+						where sd.demande.idDemande = :idDemande
+							and sd.idStatutDemande = (
+								select max(sd2.idStatutDemande)
+								from StatutDemande sd2
+								where sd2.demande.idDemande = :idDemande
+							)
+						""")
+		Optional<String> findLatestStatusIdByDemandeId(@Param("idDemande") String idDemande);
 
 		@Query("""
 						select s.libelle

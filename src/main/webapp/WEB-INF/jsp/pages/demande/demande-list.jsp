@@ -110,12 +110,57 @@
         text-decoration: none;
     }
 
+    .btn-edit-icon {
+        width: 2rem;
+        height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #d97706;
+        background: rgba(245, 158, 11, 0.08);
+        transition: all 0.18s ease;
+        text-decoration: none;
+    }
+
+    .btn-scan-valid-icon {
+        width: 2rem;
+        height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid rgba(25, 129, 227, 0.35);
+        color: #1981e3;
+        background: rgba(25, 129, 227, 0.08);
+        transition: all 0.18s ease;
+        text-decoration: none;
+        cursor: default; 
+    }
+
+    .btn-scan-valid-icon:hover {
+        color: #fff;
+        background: #1981e3;
+        border-color: #1981e3;
+        transform: translateY(-1px);
+    }
+
     .btn-detail-icon:hover,
     .btn-detail-icon:focus {
         color: #fff;
         background: var(--accent, #0c8a7b);
         border-color: var(--accent, #0c8a7b);
         box-shadow: 0 0 0 0.16rem var(--ring, rgba(12, 138, 123, 0.2));
+        text-decoration: none;
+    }
+
+    .btn-edit-icon:hover,
+    .btn-edit-icon:focus {
+        color: #fff;
+        background: #f59e0b;
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 0.16rem rgba(245, 158, 11, 0.2);
         text-decoration: none;
     }
 </style>
@@ -334,9 +379,23 @@
                                     <span class="badge text-bg-light border">${item.statut}</span>
                                 </td>
                                 <td class="text-end">
-                                    <a class="btn-detail-icon" href="${detailUrl}" aria-label="Voir detail" title="Voir detail">
-                                        <i class="fas fa-eye" aria-hidden="true"></i>
-                                    </a>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <c:if test="${item.scanComplet && item.idStatut ne 'ST000002'}">
+                                            <form action="${pageContext.request.contextPath}/demandes/valider-scan" method="POST" style="display:inline;">
+                                                <input type="hidden" name="idDemande" value="${item.demande.idDemande}">
+                                                <button type="submit" class="btn-scan-valid-icon" title="Valider scan (ST000002)" style="border:none; padding:0;">
+                                                    <i class="fas fa-check-circle" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        </c:if>
+                                        <c:url var="editUrl" value="/demandes/${item.demande.idDemande}/modifier" />
+                                        <a class="btn-edit-icon" href="${editUrl}" aria-label="Modifier" title="Modifier">
+                                            <i class="fas fa-edit" aria-hidden="true"></i>
+                                        </a>
+                                        <a class="btn-detail-icon" href="${detailUrl}" aria-label="Voir detail" title="Voir detail">
+                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         </c:forEach>

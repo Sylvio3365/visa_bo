@@ -31,6 +31,12 @@ public class CheckPiece {
     @Column(name = "est_fourni")
     private Boolean estFourni;
 
+    @Column(name = "est_uploade")
+    private Boolean estUploade;
+
+    @Column(name = "chemin_document")
+    private String cheminDocument;
+
     @Column(name = "updated_at")
     private LocalDate updatedAt;
 
@@ -64,6 +70,22 @@ public class CheckPiece {
 
     public void setEstFourni(Boolean estFourni) {
         this.estFourni = estFourni;
+    }
+
+    public Boolean getEstUploade() {
+        return estUploade;
+    }
+
+    public void setEstUploade(Boolean estUploade) {
+        this.estUploade = estUploade;
+    }
+
+    public String getCheminDocument() {
+        return cheminDocument;
+    }
+
+    public void setCheminDocument(String cheminDocument) {
+        this.cheminDocument = cheminDocument;
     }
 
     public LocalDate getUpdatedAt() {
