@@ -824,21 +824,3 @@
     </script>
 </body>
 </html>
-            var myModal = new bootstrap.Modal(modalEl);
-            myModal.show();
-        }
-
-        function viewDocument(libelle, filename) {
-            document.getElementById('viewDocName').innerText = libelle;
-            const viewerUrl = "${pageContext.request.contextPath}/demandes/document/" + filename;
-            document.getElementById('docViewer').src = viewerUrl;
-            var viewModalObj = new bootstrap.Modal(document.getElementById('viewModal'));
-            viewModalObj.show();
-        }
-
-        function closeScanModal() {
-            var modalEl = document.getElementById('scanModal');
-            var modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-        }
-    </script>
