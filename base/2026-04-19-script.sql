@@ -88,5 +88,3 @@ VALUES (
     'P000001',
     'DM000001'
 );
-
-select * from statut;

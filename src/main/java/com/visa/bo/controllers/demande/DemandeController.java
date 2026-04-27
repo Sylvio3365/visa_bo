@@ -1,7 +1,6 @@
 package com.visa.bo.controllers.demande;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
-import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.visa.bo.dto.demande.DemandeForm;
@@ -28,14 +26,10 @@ import com.visa.bo.models.demande.Demande;
 import com.visa.bo.models.etatCivil.Demandeur;
 import com.visa.bo.models.passport.Passport;
 import com.visa.bo.models.piece.Piece;
-import com.visa.bo.models.piece.CheckPiece;
 import com.visa.bo.models.visa.TypeVisa;
 import com.visa.bo.models.visa.VisaTransformable;
-import com.visa.bo.repositories.demande.DemandeRepository;
-import com.visa.bo.repositories.piece.CheckPieceRepository;
 import com.visa.bo.services.demande.ChampsValidationService;
 import com.visa.bo.services.demande.DemandeService;
-import com.visa.bo.services.demande.DemandeurSearchService;
 import com.visa.bo.services.etatcivil.NationaliteService;
 import com.visa.bo.services.etatcivil.SituationFamilleService;
 import com.visa.bo.services.etatcivil.DemandeurService;
@@ -43,8 +37,6 @@ import com.visa.bo.services.piece.PieceService;
 import com.visa.bo.services.passport.PassportService;
 import com.visa.bo.services.visa.TypeVisaService;
 import com.visa.bo.services.visa.VisaTransformableService;
-import com.visa.bo.services.visa.VisaService;
-import com.visa.bo.services.visa.CarteResidenceService;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 @Controller
@@ -81,21 +73,6 @@ public class DemandeController {
 
     @Autowired
     private DemandeService demandeService;
-
-    @Autowired
-    private DemandeurSearchService demandeurSearchService;
-
-    @Autowired
-    private VisaService visaService;
-
-    @Autowired
-    private CarteResidenceService carteResidenceService;
-
-    @Autowired
-    private DemandeRepository demandeRepository;
-
-    @Autowired
-    private CheckPieceRepository checkPieceRepository;
 
     @ModelAttribute("demandeForm")
     public DemandeForm getDemandeForm() {
@@ -417,172 +394,9 @@ public class DemandeController {
         }
     }
 
-    // Pages de recherche et redirection pour Duplicata et Transfert
-    @GetMapping("/demande/Duplicata")
-    public String duplicata(Model model) {
-        setupview(model, "demande", "Recherche demandeur - Duplicata", "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
-        model.addAttribute("operationType", "duplicata");
-        return "layout/main";
-    }
-
-    @GetMapping("/demande/Transfert de visa")
-    public String transfertVisa(Model model) {
-        setupview(model, "demande", "Recherche demandeur - Transfert de visa", "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
-        model.addAttribute("operationType", "transfert-visa");
-        return "layout/main";
-    }
-
-    @GetMapping("/demande/recherche-demandeur")
-    public String searchDemandeur(@RequestParam String searchNumber,
-            @RequestParam(required = false) String operationType,
-            Model model) {
-        if (searchNumber == null || searchNumber.trim().isEmpty()) {
-            model.addAttribute("errorMessage", "Veuillez entrer un numéro de passport ou de visa");
-            setupview(model, "demande", "Recherche demandeur", "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
-            model.addAttribute("operationType", operationType != null ? operationType : "");
-            return "layout/main";
-        }
-
-        DemandeurSearchService.DemandeurSearchResult searchResult = demandeurSearchService.searchByPassportOrVisa(searchNumber.trim());
-
-        boolean needsVisaCarte = false;
-        if ("duplicata".equalsIgnoreCase(operationType) || "transfert-visa".equalsIgnoreCase(operationType)) {
-            needsVisaCarte = !searchResult.isFound();
-        }
-
-        setupview(model, "demande", "Résultats de recherche", "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
-        model.addAttribute("searchResult", searchResult);
-        model.addAttribute("searchNumber", searchNumber);
-        model.addAttribute("operationType", operationType != null ? operationType : "");
-        model.addAttribute("needsVisaCarte", needsVisaCarte);
-
-        return "layout/main";
-    }
-
-    @GetMapping("/demande/creer-categorie")
-    public String creerCategorieDirecte(@RequestParam String idDemandeur,
-            @RequestParam String type,
-            RedirectAttributes redirectAttributes,
-            SessionStatus sessionStatus) {
-        if (idDemandeur == null || idDemandeur.isBlank()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Identifiant demandeur invalide.");
-            return "redirect:/demandes";
-        }
-        if (type == null || type.isBlank()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Catégorie invalide.");
-            return "redirect:/demandes";
-        }
-
-        Optional<Demande> lastDemandeOpt = demandeRepository
-                .findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(idDemandeur);
-        if (!lastDemandeOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Aucune demande existante pour ce demandeur.");
-            return "redirect:/demande/Nouvelle demande?idDemandeur=" + idDemandeur + "&type=" + type;
-        }
-
-        Demande lastDemande = lastDemandeOpt.get();
+    @GetMapping("/demande/nouveau-titre")
+    public String renderViewNouveauTitre(Model model) {
         DemandeForm form = new DemandeForm();
-
-        if (lastDemande.getDemandeur() != null) {
-            Demandeur demandeur = lastDemande.getDemandeur();
-            form.setIdDemandeur(demandeur.getIdDemandeur());
-            form.setNom(demandeur.getNom());
-            form.setPrenom(demandeur.getPrenom());
-            form.setNomJeuneFille(demandeur.getNomJeuneFille());
-            form.setDtn(demandeur.getDtn());
-            form.setAdresseMada(demandeur.getAdresseMada());
-            form.setTelephone(demandeur.getTelephone());
-            form.setEmail(demandeur.getEmail());
-            if (demandeur.getNationalite() != null) {
-                form.setIdNationalite(demandeur.getNationalite().getIdNationalite());
-            }
-            if (demandeur.getSituationFamille() != null) {
-                form.setIdSituationFamille(demandeur.getSituationFamille().getIdSituationFamille());
-            }
-        }
-
-        if (lastDemande.getPassport() != null) {
-            Passport passport = lastDemande.getPassport();
-            form.setIdPassport(passport.getIdPassport());
-            form.setNumPassport(passport.getNumero());
-            form.setDateDelivrancePassport(passport.getDelivreLe());
-            form.setDateExpirationPassport(passport.getExpireLe());
-        }
-
-        if (lastDemande.getVisaTransformable() != null) {
-            VisaTransformable visaTransformable = lastDemande.getVisaTransformable();
-            form.setIdVisaTransformable(visaTransformable.getIdVisaTransformable());
-            form.setRefVisa(visaTransformable.getRefVisa());
-            form.setDateDebut(visaTransformable.getDateDebut());
-            form.setDateFin(visaTransformable.getDateFin());
-        }
-
-        if (lastDemande.getTypeVisa() != null) {
-            form.setIdTypeVisa(lastDemande.getTypeVisa().getIdTypeVisa());
-        }
-
-        List<CheckPiece> checkPieces = checkPieceRepository.findByDemandeIdDemande(lastDemande.getIdDemande());
-        List<String> piecesCommunesIds = new ArrayList<>();
-        List<String> piecesComplementairesIds = new ArrayList<>();
-        for (CheckPiece checkPiece : checkPieces) {
-            if (!Boolean.TRUE.equals(checkPiece.getEstFourni()) || checkPiece.getPiece() == null) {
-                continue;
-            }
-            if (checkPiece.getPiece().getTypeVisa() == null) {
-                piecesCommunesIds.add(checkPiece.getPiece().getIdPiece());
-            } else {
-                piecesComplementairesIds.add(checkPiece.getPiece().getIdPiece());
-            }
-        }
-        if (!piecesCommunesIds.isEmpty()) {
-            form.setPiecesCommunesIds(piecesCommunesIds.toArray(new String[0]));
-        }
-        if (!piecesComplementairesIds.isEmpty()) {
-            form.setPiecesComplementairesIds(piecesComplementairesIds.toArray(new String[0]));
-        }
-
-        form.setDemandCategory(type);
-        form.setNeedsVisaCarte(false);
-        form.setCreatedFromSearch(false);
-
-        try {
-            demandeurService.creerNouveauTitre(form);
-            sessionStatus.setComplete();
-            return "redirect:/demandes/" + form.getIdDemande();
-        } catch (ValidationException e) {
-            redirectAttributes.addFlashAttribute("validationErrors", e.getErrors());
-            redirectAttributes.addFlashAttribute("hasErrors", true);
-            return "redirect:/demandes";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur: " + e.getMessage());
-            return "redirect:/demandes";
-        }
-    }
-
-    @GetMapping("/demande/Nouvelle demande")
-    public String renderViewNouveauTitre(
-            @RequestParam(value = "idDemandeur", required = false) String idDemandeur,
-            @RequestParam(value = "type", required = false) String type,
-            @RequestParam(value = "createdFromSearch", required = false) String createdFromSearch,
-            @RequestParam(value = "needsVisaCarte", required = false) String needsVisaCarte,
-            Model model) {
-        DemandeForm form = new DemandeForm();
-
-        if (idDemandeur != null && !idDemandeur.isBlank()) {
-            form.setIdDemandeur(idDemandeur);
-        }
-
-        if (type != null && !type.isBlank()) {
-            form.setDemandCategory(type);
-        }
-
-        boolean requireVisaCarte = "true".equalsIgnoreCase(needsVisaCarte);
-        form.setNeedsVisaCarte(requireVisaCarte);
-
-        if ("true".equalsIgnoreCase(createdFromSearch) || requireVisaCarte) {
-            form.setCreatedFromSearch(true);
-        }
-
         model.addAttribute("demandeForm", form);
         setupview(model, "nouveau-titre", "Nouveau titre", "");
         return "redirect:/demande/etape1";
@@ -822,93 +636,6 @@ public class DemandeController {
         return "redirect:/demande/confirmation";
     }
 
-    @GetMapping("/demande/etape7")
-    public String etape7(Model model, @ModelAttribute("demandeForm") DemandeForm form) {
-        String pageActuel = "/WEB-INF/jsp/pages/demande/nouveautitre/etape7.jsp";
-        setupview(model, "nouveau-titre", "Nouvelle demande - Créer Visa", pageActuel);
-        form.setCurrentStep("Visa");
-        model.addAttribute("currentStep", form.getCurrentStep());
-        return "layout/main";
-    }
-
-    @PostMapping("/demande/etape7")
-    public String saveEtape7(@ModelAttribute("demandeForm") DemandeForm form,
-            @RequestParam String visaRefVisa,
-            @RequestParam String visaDateDebut,
-            @RequestParam String visaDateFin) {
-        form.setVisaRefVisa(visaRefVisa);
-        form.setVisaDateDebut(LocalDate.parse(visaDateDebut));
-        form.setVisaDateFin(LocalDate.parse(visaDateFin));
-        form.setCurrentStep("CarteResidence");
-        return "redirect:/demande/etape8";
-    }
-
-    @GetMapping("/demande/etape8")
-    public String etape8(Model model, @ModelAttribute("demandeForm") DemandeForm form) {
-        String pageActuel = "/WEB-INF/jsp/pages/demande/nouveautitre/etape8.jsp";
-        setupview(model, "nouveau-titre", "Nouvelle demande - Créer Carte Résidence", pageActuel);
-        form.setCurrentStep("CarteResidence");
-        model.addAttribute("currentStep", form.getCurrentStep());
-        return "layout/main";
-    }
-
-    @PostMapping("/demande/etape8")
-    public String saveEtape8(@ModelAttribute("demandeForm") DemandeForm form,
-            @RequestParam String carteResidenceRef,
-            @RequestParam String carteResidenceDateDebut,
-            @RequestParam String carteResidenceDateFin,
-            RedirectAttributes redirectAttributes) {
-        try {
-            form.setCarteResidenceRef(carteResidenceRef);
-            form.setCarteResidenceDateDebut(LocalDate.parse(carteResidenceDateDebut));
-            form.setCarteResidenceDateFin(LocalDate.parse(carteResidenceDateFin));
-
-            if (form.getIdDemandeur() != null && !form.getIdDemandeur().isBlank()) {
-                Optional<Demandeur> demandeurCheck = demandeurService.findById(form.getIdDemandeur());
-                if (!demandeurCheck.isPresent()) {
-                    form.setIdDemandeur(null);
-                }
-            }
-
-            demandeurService.creerNouveauTitre(form);
-
-            Optional<Demande> demandeOpt = demandeRepository.findById(form.getIdDemande());
-            if (!demandeOpt.isPresent()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de la création de la demande");
-                return "redirect:/demandes";
-            }
-
-            Demande demande = demandeOpt.get();
-
-            if (form.getVisaRefVisa() != null && !form.getVisaRefVisa().isBlank()) {
-                visaService.creerVisa(
-                    form.getVisaRefVisa(),
-                    form.getVisaDateDebut(),
-                    form.getVisaDateFin(),
-                    demande
-                );
-            }
-
-            if (form.getCarteResidenceRef() != null && !form.getCarteResidenceRef().isBlank()) {
-                carteResidenceService.creerCarteResidence(
-                    form.getCarteResidenceRef(),
-                    form.getCarteResidenceDateDebut(),
-                    form.getCarteResidenceDateFin(),
-                    demande
-                );
-            }
-
-            return "redirect:/demandes";
-        } catch (ValidationException e) {
-            redirectAttributes.addFlashAttribute("validationErrors", e.getErrors());
-            redirectAttributes.addFlashAttribute("hasErrors", true);
-            return "redirect:/demande/etape8";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erreur: " + e.getMessage());
-            return "redirect:/demande/etape8";
-        }
-    }
-
     @GetMapping("/demande/confirmation")
     public String confirmation(Model model, @ModelAttribute("demandeForm") DemandeForm form) {
         String pageActuel = "/WEB-INF/jsp/pages/demande/nouveautitre/confirmation.jsp";
@@ -938,28 +665,7 @@ public class DemandeController {
         model.addAttribute("piecesCommunesAll", piecesCommunesAll);
         model.addAttribute("piecesComplementairesAll", piecesComplementairesAll);
 
-        String categoryLabel = form.getDemandCategory() != null
-                ? ("duplicata".equals(form.getDemandCategory()) ? "Duplicata"
-                : "transfert-visa".equals(form.getDemandCategory()) ? "Transfert de Visa" : "")
-                : "";
-        model.addAttribute("demandCategory", form.getDemandCategory());
-        model.addAttribute("demandCategoryLabel", categoryLabel);
-
         return "layout/main";
-    }
-
-    @PostMapping("/demande/confirmation")
-    public String submitConfirmation(@ModelAttribute("demandeForm") DemandeForm form,
-            @RequestParam(value = "demandCategory", required = false) String demandCategory) {
-        if (demandCategory != null && !demandCategory.isBlank()) {
-            form.setDemandCategory(demandCategory);
-        }
-
-        if (form.getDemandCategory() != null && !form.getDemandCategory().isBlank() && form.isNeedsVisaCarte()) {
-            return "redirect:/demande/etape7";
-        }
-
-        return "redirect:/demande/terminer";
     }
 
     @GetMapping("/demande/terminer")
