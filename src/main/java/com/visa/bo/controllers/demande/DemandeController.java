@@ -425,7 +425,7 @@ public class DemandeController {
         return "layout/main";
     }
 
-    @GetMapping("/demande/Transfert de visa")
+    @GetMapping("/demande/Transfert-de-visa")
     public String transfertVisa(Model model) {
         setupview(model, "demande", "Recherche demandeur - Transfert de visa", "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
         model.addAttribute("operationType", "transfert-visa");
@@ -477,7 +477,7 @@ public class DemandeController {
                 .findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(idDemandeur);
         if (!lastDemandeOpt.isPresent()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Aucune demande existante pour ce demandeur.");
-            return "redirect:/demande/Nouvelle demande?idDemandeur=" + idDemandeur + "&type=" + type;
+            return "redirect:/demande/Nouvelle-demande?idDemandeur=" + idDemandeur + "&type=" + type;
         }
 
         Demande lastDemande = lastDemandeOpt.get();
@@ -559,7 +559,7 @@ public class DemandeController {
         }
     }
 
-    @GetMapping("/demande/Nouvelle demande")
+    @GetMapping("/demande/Nouvelle-demande")
     public String renderViewNouveauTitre(
             @RequestParam(value = "idDemandeur", required = false) String idDemandeur,
             @RequestParam(value = "type", required = false) String type,
@@ -940,7 +940,7 @@ public class DemandeController {
 
         String categoryLabel = form.getDemandCategory() != null
                 ? ("duplicata".equals(form.getDemandCategory()) ? "Duplicata"
-                : "transfert-visa".equals(form.getDemandCategory()) ? "Transfert de Visa" : "")
+                : "transfert-visa".equals(form.getDemandCategory()) ? "Transfert-de-Visa" : "")
                 : "";
         model.addAttribute("demandCategory", form.getDemandCategory());
         model.addAttribute("demandCategoryLabel", categoryLabel);
