@@ -10,7 +10,7 @@ insert into situation_famille (id_situation_famille, libelle) VALUES ('SF00000' 
 insert into categorie_demande (id_categorie, libelle) VALUES ('CD00000' || nextval('seq_categorie_demande'), 'Nouvelle demande');
 insert into categorie_demande (id_categorie, libelle) VALUES ('CD00000' || nextval('seq_categorie_demande'), 'Duplicata');
 insert into categorie_demande (id_categorie, libelle) VALUES ('CD00000' || nextval('seq_categorie_demande'), 'Transfert de visa');
-
+select * from categorie_demande;
 insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'Malagasy');
 insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'French');
 insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'Comorian');
@@ -43,3 +43,10 @@ insert into champs (id_champs, libelle, est_obligatoire) VALUES ('CH00000' || ne
 insert into champs (id_champs, libelle, est_obligatoire) VALUES ('CH00000' || nextval('seq_champs'), 'telephone', 1);
 insert into champs (id_champs, libelle, est_obligatoire) VALUES ('CH00000' || nextval('seq_champs'), 'email', 0);
 insert into champs (id_champs, libelle, est_obligatoire) VALUES ('CH00000' || nextval('seq_champs'), 'ref_visa', 1);
+
+ALTER TABLE nationalite ADD COLUMN flag VARCHAR(2);
+
+UPDATE nationalite SET flag = '🇲🇬' WHERE libelle = 'Malagasy';
+UPDATE nationalite SET flag = '🇫🇷' WHERE libelle = 'French';
+UPDATE nationalite SET flag = '🇰🇲' WHERE libelle = 'Comorian';
+UPDATE nationalite SET flag = '🇲🇺' WHERE libelle = 'Mauritian';

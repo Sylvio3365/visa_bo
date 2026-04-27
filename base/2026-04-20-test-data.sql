@@ -267,3 +267,7 @@ WHERE sr.id_statut IS NOT NULL
   );
 
 COMMIT;
+
+select * from carte_residence;
+
+select * from demande;

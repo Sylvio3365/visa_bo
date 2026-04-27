@@ -5,9 +5,10 @@
         <!-- CONFIRMATION -->
         <div class="container mt-4 nt-page">
 
+
             <div class="nt-page-head">
                 <h1 class="nt-page-title"><i class="fas fa-pen-nib me-2"></i>Nouvelle demande de titre de visa</h1>
-                <p class="nt-page-subtitle">Vérifiez le dossier avant validation finale.</p>
+                <p class="nt-page-subtitle">Vérifiez le dossier avant de continuer vers les documents complémentaires.</p>
             </div>
 
             <!-- Stepper -->
@@ -233,17 +234,39 @@
                             </div>
 
                             <!-- Actions -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="alert alert-info" role="alert">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Catégorie de demande :</strong> 
+                                        <c:choose>
+                                            <c:when test="${not empty demandCategory}">
+                                                ${demandCategoryLabel}
+                                                <br/>
+                                                <small>Une demande de cette catégorie sera créée automatiquement après finalisation.</small>
+                                            </c:when>
+                                            <c:otherwise>
+                                                Nouvelle demande simple
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
                             <div class="d-flex gap-2 justify-content-center pt-3">
                                 <button
                                     onclick="window.location.href='${pageContext.request.contextPath}/demande/etape1';"
                                     class="btn btn-outline-secondary btn-lg">
                                     <i class="fas fa-edit me-2"></i>Modifier
                                 </button>
-                                <button
-                                    onclick="window.location.href='${pageContext.request.contextPath}/demande/terminer';"
-                                    class="btn btn-success btn-lg">
-                                    <i class="fas fa-check-circle me-2"></i>Terminer
-                                </button>
+                                <form method="post" action="<c:url value='/demande/confirmation'/>" style="display: inline;">
+                                    <!-- Transmettre la catégorie sélectionnée -->
+                                    <input type="hidden" name="demandCategory" value="${demandCategory}">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="fas fa-arrow-right me-2"></i>Créer demande & Continuer
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>

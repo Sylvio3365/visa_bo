@@ -15,6 +15,4 @@ public class CategorieDemandeController {
     public String index() {
         return "redirect:/categorie-demande";
     }
-
-    
 }

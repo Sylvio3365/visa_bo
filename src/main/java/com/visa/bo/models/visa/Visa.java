@@ -1,6 +1,6 @@
 package com.visa.bo.models.visa;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import com.visa.bo.models.demande.Demande;
 import com.visa.bo.models.passport.Passport;
@@ -31,10 +31,10 @@ public class Visa {
     private String refVisa;
 
     @Column(name = "date_debut", nullable = false)
-    private LocalDateTime dateDebut;
+    private LocalDate dateDebut;
 
     @Column(name = "date_fin", nullable = false)
-    private LocalDateTime dateFin;
+    private LocalDate dateFin;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_passport", nullable = false)
@@ -60,19 +60,19 @@ public class Visa {
         this.refVisa = refVisa;
     }
 
-    public LocalDateTime getDateDebut() {
+    public LocalDate getDateDebut() {
         return dateDebut;
     }
 
-    public void setDateDebut(LocalDateTime dateDebut) {
+    public void setDateDebut(LocalDate dateDebut) {
         this.dateDebut = dateDebut;
     }
 
-    public LocalDateTime getDateFin() {
+    public LocalDate getDateFin() {
         return dateFin;
     }
 
-    public void setDateFin(LocalDateTime dateFin) {
+    public void setDateFin(LocalDate dateFin) {
         this.dateFin = dateFin;
     }
 

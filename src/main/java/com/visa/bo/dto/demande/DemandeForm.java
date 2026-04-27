@@ -44,5 +44,19 @@ public class DemandeForm {
     // demande
     private String idDemande;
     private String currentStep;
+    private boolean createdFromSearch = false;
+    
+    // categorie (duplicata, transfert-visa, or null)
+    private String demandCategory;
+    
+    // visa (pour la page de création de visa)
+    private String visaRefVisa;
+    private LocalDate visaDateDebut;
+    private LocalDate visaDateFin;
+    
+    // carte residence (pour la page de création de carte résidence)
+    private String carteResidenceRef;
+    private LocalDate carteResidenceDateDebut;
+    private LocalDate carteResidenceDateFin;
 
 }
