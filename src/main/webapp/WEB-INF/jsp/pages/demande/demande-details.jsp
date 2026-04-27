@@ -230,12 +230,12 @@
                     </form>
                 </c:if>
                 <c:if test="${isModifiable}">
-                    <a href="${pageContext.request.contextPath}/demandes/${demande.idDemande}/historique"
+                    <!-- <a href="${pageContext.request.contextPath}/demandes/${demande.idDemande}/historique"
                         class="btn d-inline-flex align-items-center gap-2 fw-bold px-4 border-0 shadow-sm"
                         style="background: #1e293b; color: #fff; border-radius: 0.8rem;"
                         title="Voir l'historique des statuts">
                         <i class="fas fa-history"></i> Historique
-                    </a>
+                    </a> -->
                     <a href="${pageContext.request.contextPath}/demandes/${demande.idDemande}/modifier"
                         class="btn d-inline-flex align-items-center gap-2 fw-bold px-4 border-0 shadow-sm"
                         style="background: #f59e0b; color: #fff; border-radius: 0.8rem;">
