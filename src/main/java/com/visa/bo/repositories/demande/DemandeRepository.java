@@ -89,6 +89,19 @@ public interface DemandeRepository extends JpaRepository<Demande, String> {
 		Optional<Demande> findDetailedByIdDemande(@Param("idDemande") String idDemande);
 
 		@Query("""
+						select s.idStatut
+						from StatutDemande sd
+						join sd.statut s
+						where sd.demande.idDemande = :idDemande
+							and sd.idStatutDemande = (
+								select max(sd2.idStatutDemande)
+								from StatutDemande sd2
+								where sd2.demande.idDemande = :idDemande
+							)
+						""")
+		Optional<String> findLatestStatusIdByDemandeId(@Param("idDemande") String idDemande);
+
+		@Query("""
 						select s.libelle
 						from StatutDemande sd
 						join sd.statut s
