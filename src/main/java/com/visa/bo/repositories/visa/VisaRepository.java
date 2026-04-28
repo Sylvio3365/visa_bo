@@ -13,7 +13,4 @@ public interface VisaRepository extends JpaRepository<Visa, String> {
 
     @Query(value = "SELECT v FROM Visa v WHERE v.passport.demandeur.idDemandeur = :idDemandeur ORDER BY v.dateDebut DESC")
     List<Visa> findByIdDemandeur(@Param("idDemandeur") String idDemandeur);
-
-    @Query(value = "SELECT v FROM Visa v WHERE v.passport.idPassport = :idPassport ORDER BY v.dateDebut DESC")
-    List<Visa> findByIdPassport(@Param("idPassport") String idPassport);
 }

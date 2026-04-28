@@ -141,60 +141,32 @@
                                 </div>
                             </div>
 
-                            <c:choose>
-                                <c:when test="${operationType == 'duplicata' || operationType == 'transfert-visa'}">
-                                    <form method="get" action="<c:url value='/demande/creer-categorie'/>">
-                                        <input type="hidden" name="idDemandeur" value="${searchResult.demandeur.idDemandeur}">
-                                        <input type="hidden" name="type" value="${operationType}">
-
-                                        <div class="documents-area">
-                                            <h5>Choisir un Visa (duplicata/transfert)</h5>
-                                            <c:choose>
-                                                <c:when test="${not empty searchResult.passportVisas}">
-                                                    <div class="documents-grid">
-                                                        <c:forEach var="visa" items="${searchResult.passportVisas}">
-                                                            <label class="doc-card" style="cursor: pointer;">
-                                                                <div class="d-flex align-items-start gap-2">
-                                                                    <input type="radio" name="visaId" value="${visa.idVisa}" required>
-                                                                    <div>
-                                                                        <h6><i class="fas fa-stamp me-2"></i>Visa ${visa.refVisa}</h6>
-                                                                        <p><strong>Du:</strong><br>${visa.dateDebut}</p>
-                                                                        <p><strong>Au:</strong><br>${visa.dateFin}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </label>
-                                                        </c:forEach>
-                                                    </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <p class="text-muted"><i class="fas fa-info-circle me-2"></i>Aucun visa trouvé pour ce passport.</p>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
-
-                                        <!-- Boutons d'action -->
-                                        <div class="action-btns">
-                                            <button type="submit" class="btn btn-primary" ${empty searchResult.passportVisas ? 'disabled' : ''}>
-                                                <i class="fas fa-exchange-alt me-1"></i> Créer ${operationType == 'duplicata' ? 'Duplicata' : 'Transfert de Visa'}
-                                            </button>
-                                            <a href="<c:url value='/demandes'/>" class="btn btn-outline-secondary">
-                                                <i class="fas fa-arrow-left"></i> Retour à la liste
-                                            </a>
-                                        </div>
-                                    </form>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="action-btns">
+                            <!-- Boutons d'action -->
+                            <div class="action-btns">
+                                <c:choose>
+                                    <c:when test="${operationType == 'duplicata'}">
+                                        <a href="<c:url value='/demande/creer-categorie?idDemandeur=${searchResult.demandeur.idDemandeur}&type=duplicata'/>" 
+                                           class="btn btn-primary">
+                                            <i class="fas fa-copy"></i> Créer Duplicata
+                                        </a>
+                                    </c:when>
+                                    <c:when test="${operationType == 'transfert-visa'}">
+                                        <a href="<c:url value='/demande/creer-categorie?idDemandeur=${searchResult.demandeur.idDemandeur}&type=transfert-visa'/>" 
+                                           class="btn btn-primary">
+                                            <i class="fas fa-exchange-alt"></i> Créer Transfert de Visa
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
                                         <a href="<c:url value='/demande/Nouvelle-demande?idDemandeur=${searchResult.demandeur.idDemandeur}'/>" 
                                            class="btn btn-primary">
                                             <i class="fas fa-plus"></i> Nouvelle Demande
                                         </a>
-                                        <a href="<c:url value='/demandes'/>" class="btn btn-outline-secondary">
-                                            <i class="fas fa-arrow-left"></i> Retour à la liste
-                                        </a>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
+                                    </c:otherwise>
+                                </c:choose>
+                                <a href="<c:url value='/demandes'/>" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                                </a>
+                            </div>
                         </div>
 
                     </c:when>
