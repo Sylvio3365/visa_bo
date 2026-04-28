@@ -5,7 +5,12 @@
         <!-- ETAPE 1 : ETAT CIVIL -->
         <div class="container nt-page">
             <div class="nt-page-head">
-                <h1 class="nt-page-title"><i class="fas fa-pen-nib me-2"></i>Nouvelle demande de titre de visa</h1>
+                <h1 class="nt-page-title"><i class="fas fa-pen-nib me-2"></i>
+                    <c:choose>
+                        <c:when test="${not empty isModification and isModification}">Modification de la demande ${demandeForm.idDemande}</c:when>
+                        <c:otherwise>Nouvelle demande de titre de visa</c:otherwise>
+                    </c:choose>
+                </h1>
                 <p class="nt-page-subtitle">Renseignez les informations de création du dossier.</p>
             </div>
 

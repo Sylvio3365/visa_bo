@@ -32,6 +32,8 @@ import com.visa.bo.models.piece.CheckPiece;
 import com.visa.bo.models.visa.TypeVisa;
 import com.visa.bo.models.visa.VisaTransformable;
 import com.visa.bo.repositories.demande.DemandeRepository;
+import com.visa.bo.repositories.demande.StatutDemandeRepository;
+import com.visa.bo.repositories.demande.StatutRepository;
 import com.visa.bo.repositories.piece.CheckPieceRepository;
 import com.visa.bo.services.demande.ChampsValidationService;
 import com.visa.bo.services.demande.DemandeService;
@@ -46,6 +48,21 @@ import com.visa.bo.services.visa.VisaTransformableService;
 import com.visa.bo.services.visa.VisaService;
 import com.visa.bo.services.visa.CarteResidenceService;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import java.net.MalformedURLException;
 
 @Controller
 @SessionAttributes("demandeForm")
@@ -95,7 +112,133 @@ public class DemandeController {
     private DemandeRepository demandeRepository;
 
     @Autowired
+    private StatutRepository statutRepository;
+
+    @Autowired
+    private StatutDemandeRepository statutDemandeRepository;
+
+    @Autowired
     private CheckPieceRepository checkPieceRepository;
+
+    @Value("${upload.path:uploads/documents}")
+    private String uploadPath;
+
+    @PostMapping("/demandes/upload-piece")
+    public String uploadPiece(
+            @RequestParam("idDemande") String idDemande,
+            @RequestParam("idPiece") String idPiece,
+            @RequestParam("file") MultipartFile file,
+            RedirectAttributes redirectAttributes) {
+
+        if (file.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Le fichier est vide.");
+            return "redirect:/demandes/" + idDemande;
+        }
+
+        try {
+            // 1. Créer le dossier s'il n'existe pas
+            Path root = Paths.get(uploadPath);
+            if (!Files.exists(root)) {
+                Files.createDirectories(root);
+            }
+
+            // 2. Générer un nom unique
+            String extension = "";
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String filename = UUID.randomUUID().toString() + extension;
+            Path destination = root.resolve(filename);
+
+            // 3. Sauvegarder le fichier
+            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+            // 4. Mettre à jour la base de données
+            Optional<CheckPiece> checkPieceOpt = checkPieceRepository
+                    .findById(new com.visa.bo.models.piece.CheckPieceId(idDemande, idPiece));
+            if (checkPieceOpt.isPresent()) {
+                CheckPiece cp = checkPieceOpt.get();
+                cp.setEstUploade(true);
+                cp.setCheminDocument(filename);
+                cp.setUpdatedAt(LocalDate.now());
+                checkPieceRepository.save(cp);
+
+                redirectAttributes.addFlashAttribute("successMessage", "Document importe avec succes.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Lien piece-demande introuvable.");
+            }
+
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erreur lors de l'upload : " + e.getMessage());
+        }
+
+        return "redirect:/demandes/" + idDemande;
+    }
+
+    @PostMapping("/demandes/valider-scan") 
+    public String validerScan(
+            @RequestParam("idDemande") String idDemande,
+            RedirectAttributes redirectAttributes) {
+
+        Optional<com.visa.bo.models.demande.Statut> statutOpt = statutRepository.findById("ST000002");
+        if (statutOpt.isPresent()) {
+            com.visa.bo.models.demande.StatutDemande nouveauStatut = new com.visa.bo.models.demande.StatutDemande();
+            nouveauStatut.setIdStatutDemande(com.visa.bo.models.demande.StatutDemande.nextId());
+            nouveauStatut.setDemande(demandeRepository.findById(idDemande).orElse(null));
+            nouveauStatut.setStatut(statutOpt.get());
+            nouveauStatut.setDate(LocalDate.now());
+            statutDemandeRepository.save(nouveauStatut);
+            redirectAttributes.addFlashAttribute("successMessage", "Statut mis a jour : Demande de.");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Statut ST000002 introuvable.");
+        }
+
+        return "redirect:/demandes/" + idDemande;
+    }
+
+    @GetMapping(value = "/demandes/{idDemande}/qr", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> demandeQr(@PathVariable("idDemande") String idDemande) {
+        byte[] imageBytes = demandeService.genererQr(idDemande);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .body(imageBytes);
+    }
+
+    @GetMapping(value = "/demandes/{idDemande}/qr/download", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> downloadDemandeQr(@PathVariable("idDemande") String idDemande) {
+        byte[] imageBytes = demandeService.genererQr(idDemande);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=demande-" + idDemande + "-qr.png")
+                .body(imageBytes);
+    }
+
+    @GetMapping("/demandes/document/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+        try {
+            Path file = Paths.get(uploadPath).resolve(filename);
+            Resource resource = new UrlResource(file.toUri());
+            if (resource.exists() || resource.isReadable()) {
+                String contentType = "application/octet-stream";
+                try {
+                    contentType = Files.probeContentType(file);
+                } catch (IOException e) {
+                    // fall back to default
+                }
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (MalformedURLException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     @ModelAttribute("demandeForm")
     public DemandeForm getDemandeForm() {
@@ -135,30 +278,19 @@ public class DemandeController {
         String rawTypeVisaFilter = normalizeFilterParam(typeVisaParam);
         String typeVisaFilter = resolveTypeVisaFilter(rawTypeVisaFilter, typeVisaOptions);
         String warningMessage = buildListWarningMessage(
-            pageParam,
-            sizeParam,
-            rawStatusFilter,
-            statusFilter,
-            searchParam,
-            searchFilter,
-            parsedStartDate.isInvalid(),
-            parsedEndDate.isInvalid(),
-            dateRangeAdjusted,
-            rawTypeVisaFilter,
-            typeVisaFilter);
+                pageParam,
+                sizeParam,
+                rawStatusFilter,
+                statusFilter,
+                searchParam,
+                searchFilter,
+                parsedStartDate.isInvalid(),
+                parsedEndDate.isInvalid(),
+                dateRangeAdjusted,
+                rawTypeVisaFilter,
+                typeVisaFilter);
 
         Page<DemandeService.DemandeListItem> demandesPage = demandeService.findPaginatedDemandes(
-            page,
-            size,
-            statusFilter,
-            searchFilter,
-            startDate,
-            endDate,
-            typeVisaFilter);
-
-        if (demandesPage.getTotalPages() > 0 && page > demandesPage.getTotalPages()) {
-            page = demandesPage.getTotalPages();
-            demandesPage = demandeService.findPaginatedDemandes(
                 page,
                 size,
                 statusFilter,
@@ -166,6 +298,17 @@ public class DemandeController {
                 startDate,
                 endDate,
                 typeVisaFilter);
+
+        if (demandesPage.getTotalPages() > 0 && page > demandesPage.getTotalPages()) {
+            page = demandesPage.getTotalPages();
+            demandesPage = demandeService.findPaginatedDemandes(
+                    page,
+                    size,
+                    statusFilter,
+                    searchFilter,
+                    startDate,
+                    endDate,
+                    typeVisaFilter);
             String outOfRangeWarning = "Numero de page hors limite, derniere page utilisee.";
             warningMessage = warningMessage == null ? outOfRangeWarning : warningMessage + " " + outOfRangeWarning;
         }
@@ -223,11 +366,88 @@ public class DemandeController {
         model.addAttribute("demandeStatus", demandeDetail.getStatut());
         model.addAttribute("piecesCommunes", demandeDetail.getPiecesCommunes());
         model.addAttribute("piecesComplementaires", demandeDetail.getPiecesComplementaires());
+        model.addAttribute("isModifiable", true);
         model.addAttribute("demandesBackUrl",
-            buildDemandesBackUrl(pageParam, sizeParam, statusParam, searchParam, startDateParam, endDateParam,
-                typeVisaParam));
+                buildDemandesBackUrl(pageParam, sizeParam, statusParam, searchParam, startDateParam, endDateParam,
+                        typeVisaParam));
 
         return "layout/main";
+    }
+
+    @GetMapping("/demandes/{idDemande}/modifier")
+    public String modifierDemande(@PathVariable("idDemande") String idDemande, Model model,
+            RedirectAttributes redirectAttributes) {
+        Optional<Demande> demandeOpt = demandeRepository.findDetailedByIdDemande(idDemande);
+        if (!demandeOpt.isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Demande introuvable");
+            return "redirect:/demandes";
+        }
+
+        Demande d = demandeOpt.get();
+        DemandeForm form = new DemandeForm();
+
+        // Données Demandeur
+        Demandeur dm = d.getDemandeur();
+        if (dm != null) {
+            form.setIdDemandeur(dm.getIdDemandeur());
+            form.setNom(dm.getNom());
+            form.setPrenom(dm.getPrenom());
+            form.setNomJeuneFille(dm.getNomJeuneFille());
+            form.setDtn(dm.getDtn());
+            form.setEmail(dm.getEmail());
+            form.setTelephone(dm.getTelephone());
+            form.setAdresseMada(dm.getAdresseMada());
+            if (dm.getNationalite() != null)
+                form.setIdNationalite(dm.getNationalite().getIdNationalite());
+            if (dm.getSituationFamille() != null)
+                form.setIdSituationFamille(dm.getSituationFamille().getIdSituationFamille());
+        }
+
+        // Données Passport
+        Passport p = d.getPassport();
+        if (p != null) {
+            form.setIdPassport(p.getIdPassport());
+            form.setNumPassport(p.getNumero());
+            form.setDateDelivrancePassport(p.getDelivreLe());
+            form.setDateExpirationPassport(p.getExpireLe());
+        }
+
+        // Données Visa Transformable
+        VisaTransformable vt = d.getVisaTransformable();
+        if (vt != null) {
+            form.setIdVisaTransformable(vt.getIdVisaTransformable());
+            form.setRefVisa(vt.getRefVisa());
+            form.setDateDebut(vt.getDateDebut());
+            form.setDateFin(vt.getDateFin());
+        }
+
+        // Type Visa
+        if (d.getTypeVisa() != null) {
+            form.setIdTypeVisa(d.getTypeVisa().getIdTypeVisa());
+        }
+
+        // Pieces
+        List<CheckPiece> checks = checkPieceRepository.findByDemandeIdDemande(idDemande);
+        List<String> communes = new ArrayList<>();
+        List<String> complements = new ArrayList<>();
+        for (CheckPiece cp : checks) {
+            if (cp.getEstFourni() != null && cp.getEstFourni() && cp.getPiece() != null) {
+                if (cp.getPiece().getTypeVisa() == null)
+                    communes.add(cp.getPiece().getIdPiece());
+                else
+                    complements.add(cp.getPiece().getIdPiece());
+            }
+        }
+        form.setPiecesCommunesIds(communes.toArray(new String[0]));
+        form.setPiecesComplementairesIds(complements.toArray(new String[0]));
+
+        form.setIdDemande(idDemande);
+        form.setCurrentStep("1");
+        form.setCreatedFromSearch(false); // Ce n'est pas une recherche infructueuse, c'est une modif
+        form.setDemandCategory(d.getCategorie() != null ? d.getCategorie().getLibelle() : null);
+
+        redirectAttributes.addFlashAttribute("demandeForm", form);
+        return "redirect:/demande/etape1";
     }
 
     private int parsePositiveIntOrDefault(String rawValue, int defaultValue) {
@@ -289,7 +509,8 @@ public class DemandeController {
 
     private String buildListWarningMessage(String pageParam, String sizeParam, String rawStatusFilter,
             String resolvedStatusFilter, String rawSearch, String resolvedSearch, boolean invalidStartDate,
-            boolean invalidEndDate, boolean dateRangeAdjusted, String rawTypeVisaFilter, String resolvedTypeVisaFilter) {
+            boolean invalidEndDate, boolean dateRangeAdjusted, String rawTypeVisaFilter,
+            String resolvedTypeVisaFilter) {
         StringBuilder warnings = new StringBuilder();
 
         if (pageParam != null && !isPositiveInteger(pageParam)) {
@@ -420,14 +641,16 @@ public class DemandeController {
     // Pages de recherche et redirection pour Duplicata et Transfert
     @GetMapping("/demande/Duplicata")
     public String duplicata(Model model) {
-        setupview(model, "demande", "Recherche demandeur - Duplicata", "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
+        setupview(model, "demande", "Recherche demandeur - Duplicata",
+                "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
         model.addAttribute("operationType", "duplicata");
         return "layout/main";
     }
 
     @GetMapping("/demande/Transfert-de-visa")
     public String transfertVisa(Model model) {
-        setupview(model, "demande", "Recherche demandeur - Transfert de visa", "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
+        setupview(model, "demande", "Recherche demandeur - Transfert de visa",
+                "/WEB-INF/jsp/pages/demande/recherche-demandeur.jsp");
         model.addAttribute("operationType", "transfert-visa");
         return "layout/main";
     }
@@ -443,7 +666,8 @@ public class DemandeController {
             return "layout/main";
         }
 
-        DemandeurSearchService.DemandeurSearchResult searchResult = demandeurSearchService.searchByPassportOrVisa(searchNumber.trim());
+        DemandeurSearchService.DemandeurSearchResult searchResult = demandeurSearchService
+                .searchByPassportOrVisa(searchNumber.trim());
 
         boolean needsVisaCarte = false;
         if ("duplicata".equalsIgnoreCase(operationType) || "transfert-visa".equalsIgnoreCase(operationType)) {
@@ -618,6 +842,9 @@ public class DemandeController {
         String pageActuel = "/WEB-INF/jsp/pages/demande/nouveautitre/etape1.jsp";
         setupview(model, "nouveau-titre", "", pageActuel);
         form.setCurrentStep("Etat civil");
+        if (form.getIdDemande() != null && !form.getIdDemande().isBlank()) {
+            model.addAttribute("isModification", true);
+        }
         model.addAttribute("currentStep", form.getCurrentStep());
         model.addAttribute("nationalites", nationaliteService.findAll());
         model.addAttribute("situation_familles", situationFamilleService.findAll());
@@ -882,20 +1109,18 @@ public class DemandeController {
 
             if (form.getVisaRefVisa() != null && !form.getVisaRefVisa().isBlank()) {
                 visaService.creerVisa(
-                    form.getVisaRefVisa(),
-                    form.getVisaDateDebut(),
-                    form.getVisaDateFin(),
-                    demande
-                );
+                        form.getVisaRefVisa(),
+                        form.getVisaDateDebut(),
+                        form.getVisaDateFin(),
+                        demande);
             }
 
             if (form.getCarteResidenceRef() != null && !form.getCarteResidenceRef().isBlank()) {
                 carteResidenceService.creerCarteResidence(
-                    form.getCarteResidenceRef(),
-                    form.getCarteResidenceDateDebut(),
-                    form.getCarteResidenceDateFin(),
-                    demande
-                );
+                        form.getCarteResidenceRef(),
+                        form.getCarteResidenceDateDebut(),
+                        form.getCarteResidenceDateFin(),
+                        demande);
             }
 
             return "redirect:/demandes";
@@ -940,7 +1165,7 @@ public class DemandeController {
 
         String categoryLabel = form.getDemandCategory() != null
                 ? ("duplicata".equals(form.getDemandCategory()) ? "Duplicata"
-                : "transfert-visa".equals(form.getDemandCategory()) ? "Transfert-de-Visa" : "")
+                        : "transfert-visa".equals(form.getDemandCategory()) ? "Transfert-de-Visa" : "")
                 : "";
         model.addAttribute("demandCategory", form.getDemandCategory());
         model.addAttribute("demandCategoryLabel", categoryLabel);

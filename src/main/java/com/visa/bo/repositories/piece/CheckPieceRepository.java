@@ -16,4 +16,6 @@ public interface CheckPieceRepository extends JpaRepository<CheckPiece, CheckPie
 
     List<CheckPiece> findByEstFourniFalse();
 
+    void deleteByDemandeIdDemande(String idDemande);
+
 }
