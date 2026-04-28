@@ -23,6 +23,14 @@
         </div>
     </c:if>
 
+    <c:if test="${not empty errorMessage}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h4 class="alert-heading">❌ Erreur</h4>
+            <p class="mb-1"><i class="fas fa-exclamation-circle"></i> ${errorMessage}</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </c:if>
+
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm nt-form-card">
