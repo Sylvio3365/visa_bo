@@ -158,14 +158,6 @@ public class DemandeurService {
             System.out.println("Parent ID: " + nouvelleDemandeParente.getIdDemande());
             System.out.println("Category: " + category);
 
-            String statutId = demandeRepository
-                    .findLatestStatusIdByDemandeId(nouvelleDemandeParente.getIdDemande())
-                    .orElse(null);
-            if (!"ST000003".equals(statutId)) {
-            throw new ValidationException(
-                    "La demande parente doit avoir le statut 'ST000003' (visa approuve) avant de creer une demande categorie.");
-            }
-
             String idCategorie;
             if ("duplicata".equalsIgnoreCase(category)) {
                 idCategorie = "CD000002"; // Duplicata
@@ -217,7 +209,6 @@ public class DemandeurService {
             System.out.println("=== CRÉATION DEMANDE CATÉGORIE FAILED ===\n");
         }
     }
-
 
     private Demandeur creerOuRechercharDemandeur(DemandeForm dm) {
         String idDemandeur = dm.getIdDemandeur();
