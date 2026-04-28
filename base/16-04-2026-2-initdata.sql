@@ -51,4 +51,4 @@ UPDATE nationalite SET flag = '🇫🇷' WHERE libelle = 'French';
 UPDATE nationalite SET flag = '🇰🇲' WHERE libelle = 'Comorian';
 UPDATE nationalite SET flag = '🇲🇺' WHERE libelle = 'Mauritian';
 
-select*from categorie_demande;
+select*from statut;
