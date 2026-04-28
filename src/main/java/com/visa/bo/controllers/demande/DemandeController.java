@@ -30,6 +30,7 @@ import com.visa.bo.models.passport.Passport;
 import com.visa.bo.models.piece.Piece;
 import com.visa.bo.models.piece.CheckPiece;
 import com.visa.bo.models.visa.TypeVisa;
+import com.visa.bo.models.visa.Visa;
 import com.visa.bo.models.visa.VisaTransformable;
 import com.visa.bo.repositories.demande.DemandeRepository;
 import com.visa.bo.repositories.demande.StatutDemandeRepository;
@@ -686,6 +687,7 @@ public class DemandeController {
     @GetMapping("/demande/creer-categorie")
     public String creerCategorieDirecte(@RequestParam String idDemandeur,
             @RequestParam String type,
+            @RequestParam(value = "visaId", required = false) String visaId,
             RedirectAttributes redirectAttributes,
             SessionStatus sessionStatus) {
         if (idDemandeur == null || idDemandeur.isBlank()) {
@@ -697,14 +699,30 @@ public class DemandeController {
             return "redirect:/demandes";
         }
 
-        Optional<Demande> lastDemandeOpt = demandeRepository
-                .findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(idDemandeur);
-        if (!lastDemandeOpt.isPresent()) {
+        Optional<Demande> sourceDemandeOpt = Optional.empty();
+
+        if (visaId != null && !visaId.isBlank()) {
+            Optional<Visa> visaOpt = visaService.findById(visaId);
+            if (visaOpt.isPresent() && visaOpt.get().getDemande() != null) {
+                String demandeId = visaOpt.get().getDemande().getIdDemande();
+                sourceDemandeOpt = demandeRepository.findDetailedByIdDemande(demandeId);
+                if (!sourceDemandeOpt.isPresent()) {
+                    sourceDemandeOpt = Optional.of(visaOpt.get().getDemande());
+                }
+            }
+        }
+
+        if (!sourceDemandeOpt.isPresent()) {
+            sourceDemandeOpt = demandeRepository
+                    .findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(idDemandeur);
+        }
+
+        if (!sourceDemandeOpt.isPresent()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Aucune demande existante pour ce demandeur.");
             return "redirect:/demande/Nouvelle-demande?idDemandeur=" + idDemandeur + "&type=" + type;
         }
 
-        Demande lastDemande = lastDemandeOpt.get();
+        Demande lastDemande = sourceDemandeOpt.get();
         DemandeForm form = new DemandeForm();
 
         if (lastDemande.getDemandeur() != null) {
@@ -733,7 +751,21 @@ public class DemandeController {
             form.setDateExpirationPassport(passport.getExpireLe());
         }
 
-        if (lastDemande.getVisaTransformable() != null) {
+        if (visaId != null && !visaId.isBlank()) {
+            Optional<Visa> visaOpt = visaService.findById(visaId);
+            if (visaOpt.isPresent()) {
+                Visa visa = visaOpt.get();
+                form.setRefVisa(visa.getRefVisa());
+                form.setDateDebut(visa.getDateDebut());
+                form.setDateFin(visa.getDateFin());
+                if (visa.getPassport() != null) {
+                    form.setIdPassport(visa.getPassport().getIdPassport());
+                    form.setNumPassport(visa.getPassport().getNumero());
+                    form.setDateDelivrancePassport(visa.getPassport().getDelivreLe());
+                    form.setDateExpirationPassport(visa.getPassport().getExpireLe());
+                }
+            }
+        } else if (lastDemande.getVisaTransformable() != null) {
             VisaTransformable visaTransformable = lastDemande.getVisaTransformable();
             form.setIdVisaTransformable(visaTransformable.getIdVisaTransformable());
             form.setRefVisa(visaTransformable.getRefVisa());

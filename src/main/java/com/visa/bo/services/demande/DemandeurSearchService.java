@@ -41,14 +41,14 @@ public class DemandeurSearchService {
         // Rechercher par numéro de passport
         Optional<Passport> passport = passportRepository.findByNumero(searchNumber);
         if (passport.isPresent()) {
-            populateResult(result, passport.get().getDemandeur());
+            populateResult(result, passport.get().getDemandeur(), passport.get());
             return result;
         }
 
         // Rechercher par numéro de visa transformable
         Optional<VisaTransformable> visaTransformable = visaTransformableRepository.findByRefVisa(searchNumber);
         if (visaTransformable.isPresent()) {
-            populateResult(result, visaTransformable.get().getDemandeur());
+            populateResult(result, visaTransformable.get().getDemandeur(), visaTransformable.get().getPassport());
             return result;
         }
 
@@ -57,7 +57,7 @@ public class DemandeurSearchService {
         return result;
     }
 
-    private void populateResult(DemandeurSearchResult result, Demandeur demandeur) {
+    private void populateResult(DemandeurSearchResult result, Demandeur demandeur, Passport passport) {
         result.setFound(true);
         result.setDemandeur(demandeur);
 
@@ -67,6 +67,10 @@ public class DemandeurSearchService {
                 .filter(p -> p.getDemandeur().getIdDemandeur().equals(demandeur.getIdDemandeur()))
                 .max((p1, p2) -> p2.getDelivreLe().compareTo(p1.getDelivreLe()));
         lastPassport.ifPresent(result::setLastPassport);
+
+        if (passport != null && passport.getIdPassport() != null) {
+            result.setPassportVisas(visaRepository.findByIdPassport(passport.getIdPassport()));
+        }
 
         // Dernier visa transformable
         Optional<VisaTransformable> lastVisaTransformable = visaTransformableRepository.findAll().stream()
@@ -93,6 +97,7 @@ public class DemandeurSearchService {
         private VisaTransformable lastVisaTransformable;
         private Visa lastVisa;
         private CarteResidence lastCarteResidence;
+        private List<Visa> passportVisas;
 
         public boolean isFound() {
             return found;
@@ -140,6 +145,14 @@ public class DemandeurSearchService {
 
         public void setLastCarteResidence(CarteResidence lastCarteResidence) {
             this.lastCarteResidence = lastCarteResidence;
+        }
+
+        public List<Visa> getPassportVisas() {
+            return passportVisas;
+        }
+
+        public void setPassportVisas(List<Visa> passportVisas) {
+            this.passportVisas = passportVisas;
         }
     }
 }
