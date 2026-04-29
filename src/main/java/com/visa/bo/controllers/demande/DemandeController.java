@@ -23,6 +23,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.visa.bo.dto.demande.DemandeForm;
+import com.visa.bo.dto.demande.DemandeurSearchResult;
 import com.visa.bo.exceptions.ValidationException;
 import com.visa.bo.models.demande.Demande;
 import com.visa.bo.models.etatCivil.Demandeur;
@@ -176,7 +177,7 @@ public class DemandeController {
         return "redirect:/demandes/" + idDemande;
     }
 
-    @PostMapping("/demandes/valider-scan") 
+    @PostMapping("/demandes/valider-scan")
     public String validerScan(
             @RequestParam("idDemande") String idDemande,
             RedirectAttributes redirectAttributes) {
@@ -666,7 +667,7 @@ public class DemandeController {
             return "layout/main";
         }
 
-        DemandeurSearchService.DemandeurSearchResult searchResult = demandeurSearchService
+        DemandeurSearchResult searchResult = demandeurSearchService
                 .searchByPassportOrVisa(searchNumber.trim());
 
         boolean needsVisaCarte = false;
@@ -686,6 +687,7 @@ public class DemandeController {
     @GetMapping("/demande/creer-categorie")
     public String creerCategorieDirecte(@RequestParam String idDemandeur,
             @RequestParam String type,
+            @RequestParam(value = "visaId", required = false) String visaId,
             RedirectAttributes redirectAttributes,
             SessionStatus sessionStatus) {
         if (idDemandeur == null || idDemandeur.isBlank()) {
@@ -697,11 +699,22 @@ public class DemandeController {
             return "redirect:/demandes";
         }
 
-        Optional<Demande> lastDemandeOpt = demandeRepository
-                .findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(idDemandeur);
+        Optional<Demande> lastDemandeOpt = Optional.empty();
+
+        if (visaId != null && !visaId.isBlank()) {
+            try {
+                Demande nouvelleDemande = demandeurService.creerDemandeCategorieDepuisVisa(visaId, type);
+                sessionStatus.setComplete();
+                return "redirect:/demandes/" + nouvelleDemande.getIdDemande();
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Erreur: " + e.getMessage());
+                return "redirect:/demandes";
+            }
+        }
+
         if (!lastDemandeOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Aucune demande existante pour ce demandeur.");
-            return "redirect:/demande/Nouvelle-demande?idDemandeur=" + idDemandeur + "&type=" + type;
+            lastDemandeOpt = demandeRepository
+                    .findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(idDemandeur);
         }
 
         Demande lastDemande = lastDemandeOpt.get();
@@ -1043,9 +1056,13 @@ public class DemandeController {
 
     @PostMapping("/demande/etape6")
     public String saveEtape6(@ModelAttribute("demandeForm") DemandeForm form,
-            @RequestParam(value = "piecesComplementairesIds", required = false) String[] piecesComplementairesIds) {
+            @RequestParam(value = "piecesComplementairesIds", required = false) String[] piecesComplementairesIds,
+            @RequestParam(value = "demandCategory", required = false) String demandCategory) {
         form.setPiecesComplementairesIds(piecesComplementairesIds);
         form.setCurrentStep("complete");
+        if (form.getDemandCategory() != null && !form.getDemandCategory().isBlank() && form.isNeedsVisaCarte()) {
+            return "redirect:/demande/etape7";
+        }
         return "redirect:/demande/confirmation";
     }
 
@@ -1094,6 +1111,21 @@ public class DemandeController {
                 Optional<Demandeur> demandeurCheck = demandeurService.findById(form.getIdDemandeur());
                 if (!demandeurCheck.isPresent()) {
                     form.setIdDemandeur(null);
+                }
+            }
+
+            if (form.getIdPassport() != null && !form.getIdPassport().isBlank()) {
+                Optional<Passport> passportCheck = passportService.findById(form.getIdPassport());
+                if (!passportCheck.isPresent()) {
+                    form.setIdPassport(null);
+                }
+            }
+
+            if (form.getIdVisaTransformable() != null && !form.getIdVisaTransformable().isBlank()) {
+                Optional<VisaTransformable> visaTransfCheck = visaTransformableService
+                        .findById(form.getIdVisaTransformable());
+                if (!visaTransfCheck.isPresent()) {
+                    form.setIdVisaTransformable(null);
                 }
             }
 

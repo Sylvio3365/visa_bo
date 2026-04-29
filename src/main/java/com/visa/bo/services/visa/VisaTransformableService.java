@@ -17,4 +17,8 @@ public class VisaTransformableService {
     public Optional<VisaTransformable> findByRefVisaAndIdPassportAndIdDemandeur(String refVisa, String idPassport, String idDemandeur) {
         return visaTransformableRepository.findByRefVisaAndIdPassportAndIdDemandeur(refVisa, idPassport, idDemandeur);
     }
+
+    public Optional<VisaTransformable> findById(String id){
+        return visaTransformableRepository.findById(id);
+    }
 }

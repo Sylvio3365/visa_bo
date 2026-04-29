@@ -75,6 +75,7 @@ public class DemandeService {
                 });
     }
 
+
     private List<PieceDetailItem> buildPieceDetailList(List<CheckPiece> checkPieces) {
         List<PieceDetailItem> pieces = new ArrayList<>();
         for (CheckPiece checkPiece : checkPieces) {
@@ -193,6 +194,8 @@ public class DemandeService {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
+
+    
 
     public static class DemandeListItem {
         private final Demande demande;
