@@ -225,7 +225,7 @@
                         <button type="submit" class="d-inline-flex align-items-center justify-content-center border-0 shadow-sm" 
                              style="width: 2.5rem; height: 2.5rem; border-radius: 0.8rem; background: rgba(25, 129, 227, 0.1); color: #1981e3; cursor: pointer;"
                              title="Valider scan (ST000002)">
-                            <i class="fas fa-check-circle fs-4"></i>
+                            <i class="fas fa-check-circle fs-4"></i>Terminer scan
                         </button>
                     </form>
                 </c:if>
