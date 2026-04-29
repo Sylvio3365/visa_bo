@@ -3,6 +3,7 @@ package com.visa.bo.services.etatcivil;
 import com.visa.bo.repositories.passport.PassportRepository;
 import com.visa.bo.repositories.visa.VisaTransformableRepository;
 import com.visa.bo.repositories.visa.TypeVisaRepository;
+import com.visa.bo.repositories.visa.VisaRepository;
 import com.visa.bo.repositories.demande.CategorieDemandeRepository;
 import com.visa.bo.repositories.demande.DemandeRepository;
 import com.visa.bo.repositories.demande.StatutDemandeRepository;
@@ -38,6 +39,7 @@ import com.visa.bo.models.piece.CheckPiece;
 import com.visa.bo.models.piece.CheckPieceId;
 import com.visa.bo.models.visa.VisaTransformable;
 import com.visa.bo.models.visa.TypeVisa;
+import com.visa.bo.models.visa.Visa;
 import com.visa.bo.repositories.etatcivil.DemandeurRepository;
 import com.visa.bo.repositories.etatcivil.NationaliteRepository;
 import com.visa.bo.repositories.etatcivil.SituationFamilleRepository;
@@ -82,6 +84,9 @@ public class DemandeurService {
     @Autowired
     private CheckPieceRepository checkPieceRepository;
 
+    @Autowired
+    private VisaRepository visaRepository;
+
     DemandeurService(PassportRepository passportRepository, VisaTransformableRepository visaTransformableRepository) {
         this.passportRepository = passportRepository;
         this.visaTransformableRepository = visaTransformableRepository;
@@ -90,6 +95,51 @@ public class DemandeurService {
     public Optional<Demandeur> findById(String idDemandeur) {
         return demandeurRepository.findById(idDemandeur);
     }
+
+    @Transactional
+    public Demande creerDemandeCategorieDepuisVisa(String visaId, String type) {
+        Visa visa = visaRepository.findById(visaId)
+                .orElseThrow(() -> new IllegalArgumentException("Visa introuvable: " + visaId));
+
+        if (visa.getDemande() == null) {
+            throw new IllegalArgumentException("Le visa sélectionné n'est lié à aucune demande.");
+        }
+
+        Demande source = visa.getDemande();
+
+        String idCategorie;
+        if ("duplicata".equalsIgnoreCase(type)) {
+            idCategorie = "CD000002";
+        } else if ("transfert-visa".equalsIgnoreCase(type)) {
+            idCategorie = "CD000003";
+        } else {
+            throw new IllegalArgumentException("Catégorie invalide: " + type);
+        }
+
+        CategorieDemande categorie = categorieDemandeRepository.findById(idCategorie)
+                .orElseThrow(() -> new IllegalArgumentException("Catégorie introuvable: " + idCategorie));
+
+        Demande nouvelleDemande = new Demande();
+        nouvelleDemande.setIdDemande(Demande.nextId());
+        nouvelleDemande.setCreatedAt(LocalDate.now());
+        nouvelleDemande.setUpdatedAt(LocalDate.now());
+
+        nouvelleDemande.setParentDemande(source);
+        nouvelleDemande.setCategorie(categorie);
+        nouvelleDemande.setTypeVisa(source.getTypeVisa());
+        nouvelleDemande.setDemandeur(source.getDemandeur());
+        nouvelleDemande.setPassport(visa.getPassport());
+        nouvelleDemande.setVisaTransformable(source.getVisaTransformable());
+
+        demandeRepository.save(nouvelleDemande);
+
+        creerStatutDemande(nouvelleDemande,false);
+
+        return nouvelleDemande;
+    }
+
+  
+
 
     @Transactional
     public void creerNouveauTitre(DemandeForm dm) {

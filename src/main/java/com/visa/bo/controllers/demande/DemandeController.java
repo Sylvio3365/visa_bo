@@ -702,10 +702,13 @@ public class DemandeController {
         Optional<Demande> lastDemandeOpt = Optional.empty();
 
         if (visaId != null && !visaId.isBlank()) {
-            var visaOpt = visaService.findById(visaId);
-
-            if (visaOpt.isPresent() && visaOpt.get().getDemande() != null) {
-                lastDemandeOpt = Optional.of(visaOpt.get().getDemande());
+            try {
+                Demande nouvelleDemande = demandeurService.creerDemandeCategorieDepuisVisa(visaId, type);
+                sessionStatus.setComplete();
+                return "redirect:/demandes/" + nouvelleDemande.getIdDemande();
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Erreur: " + e.getMessage());
+                return "redirect:/demandes";
             }
         }
 

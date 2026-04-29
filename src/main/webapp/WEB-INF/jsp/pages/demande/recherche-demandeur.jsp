@@ -144,33 +144,6 @@
                                     </c:if>
                                 </div>
                             </div>
-
-                            <!-- Boutons d'action -->
-                            <%-- <div class="action-btns">
-                                <c:choose>
-                                    <c:when test="${operationType == 'duplicata'}">
-                                        <a href="<c:url value='/demande/creer-categorie?idDemandeur=${searchResult.demandeur.idDemandeur}&type=duplicata'/>" 
-                                           class="btn btn-primary">
-                                            <i class="fas fa-copy"></i> Créer Duplicata
-                                        </a>
-                                    </c:when>
-                                    <c:when test="${operationType == 'transfert-visa'}">
-                                        <a href="<c:url value='/demande/creer-categorie?idDemandeur=${searchResult.demandeur.idDemandeur}&type=transfert-visa'/>" 
-                                           class="btn btn-primary">
-                                            <i class="fas fa-exchange-alt"></i> Créer Transfert de Visa
-                                        </a>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <a href="<c:url value='/demande/Nouvelle-demande?idDemandeur=${searchResult.demandeur.idDemandeur}'/>" 
-                                           class="btn btn-primary">
-                                            <i class="fas fa-plus"></i> Nouvelle Demande
-                                        </a>
-                                    </c:otherwise>
-                                </c:choose>
-                                <a href="<c:url value='/demandes'/>" class="btn btn-outline-secondary">
-                                    <i class="fas fa-arrow-left"></i> Retour à la liste
-                                </a>
-                            </div> --%>
                             <div class="action-btns">
 
                              <c:if test="${operationType == 'duplicata' || operationType == 'transfert-visa'}">

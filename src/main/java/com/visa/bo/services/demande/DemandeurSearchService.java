@@ -1,5 +1,6 @@
 package com.visa.bo.services.demande;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,17 +8,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.visa.bo.dto.demande.DemandeurSearchResult;
+import com.visa.bo.models.demande.CategorieDemande;
+import com.visa.bo.models.demande.Demande;
+import com.visa.bo.models.demande.Statut;
+import com.visa.bo.models.demande.StatutDemande;
 import com.visa.bo.models.etatCivil.Demandeur;
 import com.visa.bo.models.passport.Passport;
 import com.visa.bo.models.visa.CarteResidence;
 import com.visa.bo.models.visa.Visa;
 import com.visa.bo.models.visa.VisaTransformable;
+import com.visa.bo.repositories.demande.CategorieDemandeRepository;
+import com.visa.bo.repositories.demande.DemandeRepository;
+import com.visa.bo.repositories.demande.StatutDemandeRepository;
+import com.visa.bo.repositories.demande.StatutRepository;
 import com.visa.bo.repositories.etatcivil.DemandeurRepository;
 import com.visa.bo.repositories.passport.PassportRepository;
 import com.visa.bo.repositories.visa.CarteResidenceRepository;
 import com.visa.bo.repositories.visa.VisaRepository;
 import com.visa.bo.repositories.visa.VisaTransformableRepository;
 import com.visa.bo.services.visa.VisaService;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class DemandeurSearchService {
@@ -38,7 +49,19 @@ public class DemandeurSearchService {
     private DemandeurRepository demandeurRepository;
 
     @Autowired
+    private DemandeRepository demandeRepository;
+
+    @Autowired
+    private CategorieDemandeRepository categorieDemandeRepository;
+
+    @Autowired
     private VisaService visaService;
+
+    @Autowired
+    private StatutRepository statutRepository;
+
+    @Autowired
+    private StatutDemandeRepository statutDemandeRepository;
 
     public DemandeurSearchResult searchByPassportOrVisa(String searchNumber) {
         DemandeurSearchResult result = new DemandeurSearchResult();
@@ -95,5 +118,7 @@ public class DemandeurSearchService {
         lastCarteResidence.ifPresent(result::setLastCarteResidence);
 
     }
+
+    
 
 }
