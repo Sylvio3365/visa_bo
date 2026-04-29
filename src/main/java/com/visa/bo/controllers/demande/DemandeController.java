@@ -687,6 +687,7 @@ public class DemandeController {
     @GetMapping("/demande/creer-categorie")
     public String creerCategorieDirecte(@RequestParam String idDemandeur,
             @RequestParam String type,
+            @RequestParam(value = "visaId", required = false) String visaId,
             RedirectAttributes redirectAttributes,
             SessionStatus sessionStatus) {
         if (idDemandeur == null || idDemandeur.isBlank()) {
@@ -698,11 +699,19 @@ public class DemandeController {
             return "redirect:/demandes";
         }
 
-        Optional<Demande> lastDemandeOpt = demandeRepository
-                .findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(idDemandeur);
+        Optional<Demande> lastDemandeOpt = Optional.empty();
+
+        if (visaId != null && !visaId.isBlank()) {
+            var visaOpt = visaService.findById(visaId);
+
+            if (visaOpt.isPresent() && visaOpt.get().getDemande() != null) {
+                lastDemandeOpt = Optional.of(visaOpt.get().getDemande());
+            }
+        }
+
         if (!lastDemandeOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Aucune demande existante pour ce demandeur.");
-            return "redirect:/demande/Nouvelle-demande?idDemandeur=" + idDemandeur + "&type=" + type;
+            lastDemandeOpt = demandeRepository
+                    .findTopByDemandeurIdDemandeurOrderByCreatedAtDescIdDemandeDesc(idDemandeur);
         }
 
         Demande lastDemande = lastDemandeOpt.get();

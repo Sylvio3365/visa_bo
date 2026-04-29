@@ -1,5 +1,8 @@
 package com.visa.bo.dto.demande;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.visa.bo.models.etatCivil.Demandeur;
 import com.visa.bo.models.passport.Passport;
 import com.visa.bo.models.visa.CarteResidence;
@@ -7,13 +10,22 @@ import com.visa.bo.models.visa.Visa;
 import com.visa.bo.models.visa.VisaTransformable;
 
 // Classe pour encapsuler les résultats de recherche
-public  class DemandeurSearchResult {
+public class DemandeurSearchResult {
     private boolean found = false;
     private Demandeur demandeur;
     private Passport lastPassport;
     private VisaTransformable lastVisaTransformable;
     private Visa lastVisa;
     private CarteResidence lastCarteResidence;
+    private List<Visa> visas = new ArrayList<>();
+
+    public List<Visa> getVisas() {
+        return visas;
+    }
+
+    public void setVisas(List<Visa> visas) {
+        this.visas = visas;
+    }
 
     public boolean isFound() {
         return found;

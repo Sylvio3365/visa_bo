@@ -17,6 +17,7 @@ import com.visa.bo.repositories.passport.PassportRepository;
 import com.visa.bo.repositories.visa.CarteResidenceRepository;
 import com.visa.bo.repositories.visa.VisaRepository;
 import com.visa.bo.repositories.visa.VisaTransformableRepository;
+import com.visa.bo.services.visa.VisaService;
 
 @Service
 public class DemandeurSearchService {
@@ -36,6 +37,9 @@ public class DemandeurSearchService {
     @Autowired
     private DemandeurRepository demandeurRepository;
 
+    @Autowired
+    private VisaService visaService;
+
     public DemandeurSearchResult searchByPassportOrVisa(String searchNumber) {
         DemandeurSearchResult result = new DemandeurSearchResult();
 
@@ -43,6 +47,8 @@ public class DemandeurSearchService {
         Optional<Passport> passport = passportRepository.findByNumero(searchNumber);
         if (passport.isPresent()) {
             populateResult(result, passport.get().getDemandeur());
+            List<Visa> visas = visaService.findByPassportId(passport.get().getIdPassport());
+            result.setVisas(visas);
             return result;
         }
 
@@ -50,6 +56,8 @@ public class DemandeurSearchService {
         Optional<VisaTransformable> visaTransformable = visaTransformableRepository.findByRefVisa(searchNumber);
         if (visaTransformable.isPresent()) {
             populateResult(result, visaTransformable.get().getDemandeur());
+            List<Visa> visas = visaService.findByPassportId(visaTransformable.get().getPassport().getIdPassport());
+            result.setVisas(visas);
             return result;
         }
 
@@ -81,9 +89,11 @@ public class DemandeurSearchService {
         lastVisa.ifPresent(result::setLastVisa);
 
         // Dernière carte de résidence
-        Optional<CarteResidence> lastCarteResidence = carteResidenceRepository.findByIdDemandeur(demandeur.getIdDemandeur()).stream()
+        Optional<CarteResidence> lastCarteResidence = carteResidenceRepository
+                .findByIdDemandeur(demandeur.getIdDemandeur()).stream()
                 .findFirst();
         lastCarteResidence.ifPresent(result::setLastCarteResidence);
+
     }
 
 }

@@ -1,6 +1,7 @@
 package com.visa.bo.services.visa;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,5 +36,9 @@ public class VisaService {
 
     public Optional<Visa> findById(String id) {
         return visaRepository.findById(id);
+    }
+
+    public List<Visa> findByPassportId(String idPassport) {
+        return visaRepository.findByPassportIdPassport(idPassport);
     }
 }
