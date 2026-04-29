@@ -23,6 +23,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.visa.bo.dto.demande.DemandeForm;
+import com.visa.bo.dto.demande.DemandeurSearchResult;
 import com.visa.bo.exceptions.ValidationException;
 import com.visa.bo.models.demande.Demande;
 import com.visa.bo.models.etatCivil.Demandeur;
@@ -666,7 +667,7 @@ public class DemandeController {
             return "layout/main";
         }
 
-        DemandeurSearchService.DemandeurSearchResult searchResult = demandeurSearchService
+        DemandeurSearchResult searchResult = demandeurSearchService
                 .searchByPassportOrVisa(searchNumber.trim());
 
         boolean needsVisaCarte = false;
