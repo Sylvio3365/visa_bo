@@ -1,8 +1,4 @@
 -- Active: 1736646695640@@127.0.0.1@5432@visa_db
-
-create database visa_db;
-use visa_db;
-
 CREATE TABLE type_visa(
    id_type_visa VARCHAR(50),
    libelle VARCHAR(150) NOT NULL,
