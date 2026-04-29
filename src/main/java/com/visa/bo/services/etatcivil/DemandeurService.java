@@ -102,7 +102,7 @@ public class DemandeurService {
 
         // Déterminer si c'est une modification
         boolean isModification = dm.getIdDemande() != null && !dm.getIdDemande().isBlank();
-        
+
         // Déterminer le statut à utiliser :
         // - Si createdFromSearch = true (recherche infructueuse) → "visa approuvé"
         // - Sinon → "dossier cree"
@@ -140,13 +140,16 @@ public class DemandeurService {
         // Vérification et insertion des pièces complémentaires
         verifierEtInsererPiecesComplementaires(dm, demande, checkPiecesExistantes);
 
-        // Création du statut demande (uniquement si nouvelle demande, ou si on veut tracer l'historique de modif?)
-        // Pour l'instant, on ne crée pas de nouveau statut "Dossier créé" si c'est une modification.
+        // Création du statut demande (uniquement si nouvelle demande, ou si on veut
+        // tracer l'historique de modif?)
+        // Pour l'instant, on ne crée pas de nouveau statut "Dossier créé" si c'est une
+        // modification.
         if (!isModification) {
             creerStatutDemande(demande, isCreatedFromSearch);
         }
 
-        // Créer automatiquement une demande de catégorie si elle existe et si les etapes 7/8 sont requises
+        // Créer automatiquement une demande de catégorie si elle existe et si les
+        // etapes 7/8 sont requises
         if (dm.getDemandCategory() != null && !dm.getDemandCategory().isBlank() && dm.isNeedsVisaCarte()) {
             creerDemandeCategorie(demande, dm.getDemandCategory());
         }
@@ -199,7 +202,8 @@ public class DemandeurService {
             System.out.println("✓ Statut de la demande catégorie créé (nouvelle demande)");
 
             System.out.println("✅ CRÉATION DEMANDE CATÉGORIE SUCCESS");
-            System.out.println("Demande catégorie finalisée: " + demandeCategorie.getIdDemande() + " pour catégorie: " + category);
+            System.out.println(
+                    "Demande catégorie finalisée: " + demandeCategorie.getIdDemande() + " pour catégorie: " + category);
             System.out.println("=== CRÉATION DEMANDE CATÉGORIE END ===\n");
         } catch (Exception e) {
             System.out.println("❌ ERREUR lors de la création de la demande catégorie");
@@ -235,25 +239,28 @@ public class DemandeurService {
         demandeur.setUpdatedAt(LocalDate.now());
 
         // Valider et charger les références
-        if (dm.getIdNationalite() == null || dm.getIdNationalite().isBlank()) {
-            throw new IllegalArgumentException("Nationalite non sélectionnée");
-        }
-        if (dm.getIdSituationFamille() == null || dm.getIdSituationFamille().isBlank()) {
-            throw new IllegalArgumentException("Situation familiale non sélectionnée");
-        }
 
-        Optional<Nationalite> nationaliteOpt = nationaliteRepository.findById(dm.getIdNationalite());
-        if (!nationaliteOpt.isPresent()) {
-            throw new IllegalArgumentException("Nationalite introuvable: " + dm.getIdNationalite());
-        }
-        Nationalite nationalite = nationaliteOpt.get();
+        if (dm.getIdNationalite() != null && !dm.getIdNationalite().isBlank()) {
 
-        Optional<SituationFamille> situationFamilleOpt = situationFamilleRepository
-                .findById(dm.getIdSituationFamille());
-        if (!situationFamilleOpt.isPresent()) {
-            throw new IllegalArgumentException("Situation familiale introuvable: " + dm.getIdSituationFamille());
+            Optional<Nationalite> nationaliteOpt = nationaliteRepository.findById(dm.getIdNationalite());
+            if (!nationaliteOpt.isPresent()) {
+                throw new IllegalArgumentException("Nationalite introuvable: " + dm.getIdNationalite());
+            }
+            demandeur.setNationalite(nationaliteOpt.get());
+
         }
-        SituationFamille situationFamille = situationFamilleOpt.get();
+        if (dm.getIdSituationFamille() != null && !dm.getIdSituationFamille().isBlank()) {
+            Optional<SituationFamille> situationFamilleOpt = situationFamilleRepository
+                    .findById(dm.getIdSituationFamille());
+
+            if (!situationFamilleOpt.isPresent()) {
+                throw new IllegalArgumentException(
+                        "Situation familiale introuvable: " + dm.getIdSituationFamille());
+            }
+
+            SituationFamille situationFamille = situationFamilleOpt.get();
+            demandeur.setSituationFamille(situationFamille);
+        }
 
         // Mapper tous les champs
         demandeur.setNom(dm.getNom());
@@ -263,8 +270,6 @@ public class DemandeurService {
         demandeur.setAdresseMada(dm.getAdresseMada());
         demandeur.setTelephone(dm.getTelephone());
         demandeur.setEmail(dm.getEmail());
-        demandeur.setNationalite(nationalite);
-        demandeur.setSituationFamille(situationFamille);
         demandeur.setUpdatedAt(LocalDate.now());
 
         // Persister et synchroniser l'ID
@@ -276,8 +281,8 @@ public class DemandeurService {
         Passport passport;
         if (dm.getIdPassport() != null && !dm.getIdPassport().isBlank()) {
             passport = passportRepository.findById(dm.getIdPassport()).orElseThrow(
-                () -> new IllegalArgumentException("Passport introuvable: " + dm.getIdPassport()));
-            
+                    () -> new IllegalArgumentException("Passport introuvable: " + dm.getIdPassport()));
+
             // Si le numéro change, on vérifie l'unicité
             if (dm.getNumPassport() != null && !dm.getNumPassport().equals(passport.getNumero())) {
                 verifierNumeroPassportUnique(dm.getNumPassport(), passport.getIdPassport());
@@ -300,8 +305,9 @@ public class DemandeurService {
         VisaTransformable visaTransformable;
         if (dm.getIdVisaTransformable() != null && !dm.getIdVisaTransformable().isBlank()) {
             visaTransformable = visaTransformableRepository.findById(dm.getIdVisaTransformable()).orElseThrow(
-                () -> new IllegalArgumentException("Visa Transformable introuvable: " + dm.getIdVisaTransformable()));
-            
+                    () -> new IllegalArgumentException(
+                            "Visa Transformable introuvable: " + dm.getIdVisaTransformable()));
+
             // Si la référence change, on vérifie l'unicité
             if (dm.getRefVisa() != null && !dm.getRefVisa().equals(visaTransformable.getRefVisa())) {
                 verifierRefVisaUnique(dm.getRefVisa(), visaTransformable.getIdVisaTransformable());
@@ -366,7 +372,7 @@ public class DemandeurService {
         Demande demande;
         if (dm.getIdDemande() != null && !dm.getIdDemande().isBlank()) {
             demande = demandeRepository.findById(dm.getIdDemande()).orElseThrow(
-                () -> new IllegalArgumentException("Demande introuvable: " + dm.getIdDemande()));
+                    () -> new IllegalArgumentException("Demande introuvable: " + dm.getIdDemande()));
         } else {
             demande = new Demande();
             demande.setIdDemande(Demande.nextId());
@@ -394,7 +400,8 @@ public class DemandeurService {
 
         final String categorieIdFinal = categorieId;
         CategorieDemande cd = categorieDemandeRepository.findById(categorieIdFinal).orElseThrow(
-            () -> new IllegalArgumentException("Catégorie de demande '" + categorieIdFinal + "' introuvable en base de données"));
+                () -> new IllegalArgumentException(
+                        "Catégorie de demande '" + categorieIdFinal + "' introuvable en base de données"));
         demande.setCategorie(cd);
 
         // Charger et assigner le type de visa
@@ -408,7 +415,8 @@ public class DemandeurService {
         return demande;
     }
 
-    private void verifierEtInsererPiecesCommunces(DemandeForm dm, Demande demande, Map<String, CheckPiece> checkPiecesExistantes) {
+    private void verifierEtInsererPiecesCommunces(DemandeForm dm, Demande demande,
+            Map<String, CheckPiece> checkPiecesExistantes) {
         List<Piece> piecesCommunesAll = pieceRepository.findAllPieceCommune();
         Set<String> piecesFournies = new HashSet<>();
         List<String> erreurs = new java.util.ArrayList<>();
@@ -451,7 +459,8 @@ public class DemandeurService {
         }
     }
 
-    private void verifierEtInsererPiecesComplementaires(DemandeForm dm, Demande demande, Map<String, CheckPiece> checkPiecesExistantes) {
+    private void verifierEtInsererPiecesComplementaires(DemandeForm dm, Demande demande,
+            Map<String, CheckPiece> checkPiecesExistantes) {
         List<String> erreurs = new java.util.ArrayList<>();
 
         // Vérifier que le type de visa est sélectionné
@@ -503,7 +512,7 @@ public class DemandeurService {
 
     public void creerStatutDemande(Demande demande, boolean isCreatedFromSearch) {
         String idStatut;
-        
+
         // Si la demande vient d'une recherche infructueuse → "visa approuvé"
         // Sinon → "dossier cree"
         if (isCreatedFromSearch) {
@@ -513,7 +522,7 @@ public class DemandeurService {
             // "dossier cree" - ST000001
             idStatut = "ST000001";
         }
-        
+
         Statut statut = statutRepository.findById(idStatut).orElseThrow(
                 () -> new IllegalArgumentException("Statut introuvable: " + idStatut));
 

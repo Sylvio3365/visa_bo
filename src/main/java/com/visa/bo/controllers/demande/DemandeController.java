@@ -176,7 +176,7 @@ public class DemandeController {
         return "redirect:/demandes/" + idDemande;
     }
 
-    @PostMapping("/demandes/valider-scan") 
+    @PostMapping("/demandes/valider-scan")
     public String validerScan(
             @RequestParam("idDemande") String idDemande,
             RedirectAttributes redirectAttributes) {
@@ -1043,9 +1043,13 @@ public class DemandeController {
 
     @PostMapping("/demande/etape6")
     public String saveEtape6(@ModelAttribute("demandeForm") DemandeForm form,
-            @RequestParam(value = "piecesComplementairesIds", required = false) String[] piecesComplementairesIds) {
+            @RequestParam(value = "piecesComplementairesIds", required = false) String[] piecesComplementairesIds,
+            @RequestParam(value = "demandCategory", required = false) String demandCategory) {
         form.setPiecesComplementairesIds(piecesComplementairesIds);
         form.setCurrentStep("complete");
+        if (form.getDemandCategory() != null && !form.getDemandCategory().isBlank() && form.isNeedsVisaCarte()) {
+            return "redirect:/demande/etape7";
+        }
         return "redirect:/demande/confirmation";
     }
 
@@ -1094,6 +1098,21 @@ public class DemandeController {
                 Optional<Demandeur> demandeurCheck = demandeurService.findById(form.getIdDemandeur());
                 if (!demandeurCheck.isPresent()) {
                     form.setIdDemandeur(null);
+                }
+            }
+
+            if (form.getIdPassport() != null && !form.getIdPassport().isBlank()) {
+                Optional<Passport> passportCheck = passportService.findById(form.getIdPassport());
+                if (!passportCheck.isPresent()) {
+                    form.setIdPassport(null);
+                }
+            }
+
+            if (form.getIdVisaTransformable() != null && !form.getIdVisaTransformable().isBlank()) {
+                Optional<VisaTransformable> visaTransfCheck = visaTransformableService
+                        .findById(form.getIdVisaTransformable());
+                if (!visaTransfCheck.isPresent()) {
+                    form.setIdVisaTransformable(null);
                 }
             }
 

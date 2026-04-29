@@ -17,4 +17,8 @@ public class PassportService {
     public Optional<Passport> findByNumeroAndIdDemandeur(String numero, String idDemandeur) {
         return passportRepository.findByNumeroAndIdDemandeur(numero, idDemandeur);
     }
+
+    public Optional<Passport> findById(String idPassport) {
+       return passportRepository.findById(idPassport);
+    }
 }
