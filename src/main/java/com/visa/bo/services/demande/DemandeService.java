@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.visa.bo.dto.demande.DemandeDTO;
 import com.visa.bo.models.demande.Demande;
+import com.visa.bo.models.demande.DemandeVue;
 import com.visa.bo.models.demande.StatutDemande;
+import com.visa.bo.models.etatCivil.Demandeur;
 import com.visa.bo.models.piece.CheckPiece;
 import com.visa.bo.repositories.demande.DemandeRepository;
+import com.visa.bo.repositories.demande.DemandeVueRepository;
 import com.visa.bo.repositories.demande.StatutDemandeRepository;
 import com.visa.bo.repositories.piece.CheckPieceRepository;
 import com.visa.bo.util.qr.QrCode;
@@ -37,6 +42,9 @@ public class DemandeService {
 
     @Autowired
     private CheckPieceRepository checkPieceRepository;
+
+    @Autowired
+    private DemandeVueRepository demandeVueRepository;
 
     @Autowired
     private StatutDemandeRepository statutDemandeRepository;
@@ -74,7 +82,6 @@ public class DemandeService {
                             piecesList);
                 });
     }
-
 
     private List<PieceDetailItem> buildPieceDetailList(List<CheckPiece> checkPieces) {
         List<PieceDetailItem> pieces = new ArrayList<>();
@@ -194,8 +201,6 @@ public class DemandeService {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
-
-    
 
     public static class DemandeListItem {
         private final Demande demande;
@@ -328,4 +333,26 @@ public class DemandeService {
     public Optional<Demande> findById(String idDemande) {
         return demandeRepository.findById(idDemande);
     }
+
+    public List<DemandeVue> getDemandesResume(String value) throws Exception {
+        Optional<DemandeVue> demandeRecherchee;
+        try {
+            demandeRecherchee = demandeVueRepository.findByIdDemande(value);
+            if (demandeRecherchee.isPresent()) {
+                String idDemandeur = demandeRecherchee.get().getIdDemandeur();
+
+                List<DemandeVue> demandes = demandeVueRepository.findByIdDemandeur(idDemandeur);
+
+                demandes.sort(
+                        Comparator.comparing(d -> !d.getIdDemande().equals(value)));
+
+                return demandes;
+            }
+        } catch (Exception e) {
+            throw new Exception("Erreur lors des recuperations des demandes" + e.getMessage());
+        }
+
+        return demandeVueRepository.findByNumeroPassport(value);
+    }
+
 }
