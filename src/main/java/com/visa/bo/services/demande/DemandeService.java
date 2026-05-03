@@ -27,6 +27,7 @@ import com.visa.bo.repositories.demande.DemandeRepository;
 import com.visa.bo.repositories.demande.DemandeVueRepository;
 import com.visa.bo.repositories.demande.StatutDemandeRepository;
 import com.visa.bo.repositories.piece.CheckPieceRepository;
+import com.visa.bo.dto.demande.DemandeDetailsDTO;
 import com.visa.bo.util.qr.QrCode;
 import com.visa.bo.util.wifi.WifiManager;
 
@@ -143,6 +144,21 @@ public class DemandeService {
             return new ArrayList<>();
         }
         return statutDemandeRepository.findByDemandeIdDemandeOrderByDateDescIdStatutDemandeDesc(idDemande.trim());
+    }
+
+    public DemandeDetailsDTO getDemandeDetails(String idDemande) throws Exception {
+        if (idDemande == null || idDemande.trim().isEmpty()) {
+            throw new Exception("L'id de la demande est obligatoire");
+        }
+
+        String cleanIdDemande = idDemande.trim();
+
+        DemandeVue demande = demandeVueRepository.findByIdDemande(cleanIdDemande)
+                .orElseThrow(() -> new Exception("Demande introuvable"));
+
+        List<StatutDemande> statuts = findStatutHistory(cleanIdDemande);
+
+        return new DemandeDetailsDTO(demande, statuts);
     }
 
     public Optional<DemandeDetail> findDemandeDetail(String idDemande) {
