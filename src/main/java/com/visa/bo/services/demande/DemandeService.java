@@ -54,8 +54,7 @@ public class DemandeService {
     @Autowired
     private StatutDemandeRepository statutDemandeRepository;
 
-    @Value("${server.port:2025}")
-    private String serverPort;
+    private String serverPort = "5173";
 
     @Value("${server.servlet.context-path:}")
     private String serverContextPath;
@@ -109,8 +108,7 @@ public class DemandeService {
         try {
             String ip = WifiManager.getCurrentIpAddress();
             String normalizedContextPath = normalizeContextPath(serverContextPath);
-            String url = "http://" + ip + ":" + serverPort + normalizedContextPath + "/demandes/" + idDemande
-                    + "/historique";
+            String url = "http://" + ip + ":" + serverPort +  "/demandes/" + idDemande;
             BufferedImage qrImage = QrCode.generateFromUrl(url);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ImageIO.write(qrImage, "PNG", outputStream);
