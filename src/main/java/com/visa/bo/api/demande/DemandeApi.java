@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import com.visa.bo.dto.api.ApiResponseDTO;
-import com.visa.bo.dto.demande.DemandeDTO;
 import com.visa.bo.models.demande.DemandeVue;
 import com.visa.bo.services.demande.DemandeService;
 
@@ -18,18 +18,30 @@ public class DemandeApi {
     @Autowired
     private DemandeService demandeService;
 
-    @GetMapping("/search/{value}")
-    public ApiResponseDTO<List<DemandeVue>> getDemandesByPassportOrIdDemande(
-            @PathVariable String value) {
-        List<DemandeVue> demandes = new ArrayList<>();
+    @GetMapping
+    public ApiResponseDTO<Page<DemandeVue>> getDemandes(
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "7") int size) {
         try {
-            demandes = demandeService.getDemandesResume(value);
-            if (demandes.isEmpty()) {
-                return ApiResponseDTO.success("Aucune demande trouvée",null);
+            Page<DemandeVue> demandes;
+
+            if (search != null && !search.isBlank()) {
+                demandes = demandeService.getDemandesResume(search, page, size);
+            } else {
+                demandes = demandeService.getDemandesResumeDate(date, page, size);
             }
+
+            if (demandes.isEmpty()) {
+                return ApiResponseDTO.success("Aucune demande trouvée", null);
+            }
+
+            return ApiResponseDTO.success("Demandes récupérées avec succès", demandes);
+
         } catch (Exception e) {
             return ApiResponseDTO.error(e.getMessage());
         }
-        return ApiResponseDTO.success("Demandes récupérées avec succès", demandes);
     }
+
 }

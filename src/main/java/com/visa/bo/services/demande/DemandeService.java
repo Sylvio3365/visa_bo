@@ -18,11 +18,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.visa.bo.dto.demande.DemandeDTO;
 import com.visa.bo.models.demande.Demande;
 import com.visa.bo.models.demande.DemandeVue;
 import com.visa.bo.models.demande.StatutDemande;
-import com.visa.bo.models.etatCivil.Demandeur;
+import com.visa.bo.util.Util;
 import com.visa.bo.models.piece.CheckPiece;
 import com.visa.bo.repositories.demande.DemandeRepository;
 import com.visa.bo.repositories.demande.DemandeVueRepository;
@@ -30,6 +29,11 @@ import com.visa.bo.repositories.demande.StatutDemandeRepository;
 import com.visa.bo.repositories.piece.CheckPieceRepository;
 import com.visa.bo.util.qr.QrCode;
 import com.visa.bo.util.wifi.WifiManager;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class DemandeService {
@@ -353,6 +357,78 @@ public class DemandeService {
         }
 
         return demandeVueRepository.findByNumeroPassport(value);
+    }
+
+    public Page<DemandeVue> getDemandesResume(String value, int page, int size) throws Exception {
+        try {
+            int pageNumber = Math.max(page, 0);
+            int pageSize = size > 0 ? size : 7;
+
+            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+            Optional<DemandeVue> demandeRecherchee = demandeVueRepository.findByIdDemande(value);
+
+            if (demandeRecherchee.isPresent()) {
+                String idDemandeur = demandeRecherchee.get().getIdDemandeur();
+
+                Page<DemandeVue> demandesPage = demandeVueRepository.findByIdDemandeur(idDemandeur, pageable);
+
+                /*
+                 * Important :
+                 * ce tri met la demande recherchée en premier uniquement
+                 * dans la page actuelle.
+                 */
+                List<DemandeVue> demandes = demandesPage.getContent();
+
+                demandes.sort(
+                        Comparator.comparing(d -> !d.getIdDemande().equals(value)));
+
+                return new PageImpl<>(
+                        demandes,
+                        pageable,
+                        demandesPage.getTotalElements());
+            }
+
+            return demandeVueRepository.findByNumeroPassport(value, pageable);
+
+        } catch (Exception e) {
+            throw new Exception("Erreur lors de la récupération des demandes : " + e.getMessage());
+        }
+    }
+
+    public Page<DemandeVue> getDemandesResumeDate(String date, int page, int size) throws Exception {
+        try {
+            int pageNumber = Math.max(page, 0);
+            int pageSize = size > 0 ? size : 7;
+
+            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+            LocalDate parsedDate;
+
+            if (date == null || date.isBlank()) {
+                parsedDate = LocalDate.now();
+            } else {
+                parsedDate = Util.parseDate(date);
+            }
+
+            return demandeVueRepository.findByCreatedAt(parsedDate, pageable);
+
+        } catch (Exception e) {
+            throw new Exception("Erreur lors de la récupération des demandes par date : " + e.getMessage());
+        }
+    }
+
+    public List<DemandeVue> getDemandesResumeDate(String date) throws Exception {
+        List<DemandeVue> demandes;
+        try {
+            LocalDate dates = Util.parseDate(date);
+            demandes = demandeVueRepository.findByCreatedAt(dates);
+
+        } catch (Exception e) {
+            throw new Exception("Erreur lors des recuperations des demandes" + e.getMessage());
+        }
+
+        return demandes;
     }
 
 }
