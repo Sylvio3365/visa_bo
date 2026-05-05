@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +19,22 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.visa.bo.models.demande.Demande;
+import com.visa.bo.models.demande.DemandeVue;
 import com.visa.bo.models.demande.StatutDemande;
+import com.visa.bo.util.Util;
 import com.visa.bo.models.piece.CheckPiece;
 import com.visa.bo.repositories.demande.DemandeRepository;
+import com.visa.bo.repositories.demande.DemandeVueRepository;
 import com.visa.bo.repositories.demande.StatutDemandeRepository;
 import com.visa.bo.repositories.piece.CheckPieceRepository;
+import com.visa.bo.dto.demande.DemandeDetailsDTO;
 import com.visa.bo.util.qr.QrCode;
 import com.visa.bo.util.wifi.WifiManager;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class DemandeService {
@@ -39,10 +49,12 @@ public class DemandeService {
     private CheckPieceRepository checkPieceRepository;
 
     @Autowired
+    private DemandeVueRepository demandeVueRepository;
+
+    @Autowired
     private StatutDemandeRepository statutDemandeRepository;
 
-    @Value("${server.port:2025}")
-    private String serverPort;
+    private String serverPort = "5173";
 
     @Value("${server.servlet.context-path:}")
     private String serverContextPath;
@@ -75,7 +87,6 @@ public class DemandeService {
                 });
     }
 
-
     private List<PieceDetailItem> buildPieceDetailList(List<CheckPiece> checkPieces) {
         List<PieceDetailItem> pieces = new ArrayList<>();
         for (CheckPiece checkPiece : checkPieces) {
@@ -97,8 +108,7 @@ public class DemandeService {
         try {
             String ip = WifiManager.getCurrentIpAddress();
             String normalizedContextPath = normalizeContextPath(serverContextPath);
-            String url = "http://" + ip + ":" + serverPort + normalizedContextPath + "/demandes/" + idDemande
-                    + "/historique";
+            String url = "http://" + ip + ":" + serverPort + "/demandes/" + idDemande;
             BufferedImage qrImage = QrCode.generateFromUrl(url);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ImageIO.write(qrImage, "PNG", outputStream);
@@ -132,6 +142,21 @@ public class DemandeService {
             return new ArrayList<>();
         }
         return statutDemandeRepository.findByDemandeIdDemandeOrderByDateDescIdStatutDemandeDesc(idDemande.trim());
+    }
+
+    public DemandeDetailsDTO getDemandeDetails(String idDemande) throws Exception {
+        if (idDemande == null || idDemande.trim().isEmpty()) {
+            throw new Exception("L'id de la demande est obligatoire");
+        }
+
+        String cleanIdDemande = idDemande.trim();
+
+        DemandeVue demande = demandeVueRepository.findByIdDemande(cleanIdDemande)
+                .orElseThrow(() -> new Exception("Demande introuvable"));
+
+        List<StatutDemande> statuts = findStatutHistory(cleanIdDemande);
+
+        return new DemandeDetailsDTO(demande, statuts);
     }
 
     public Optional<DemandeDetail> findDemandeDetail(String idDemande) {
@@ -194,8 +219,6 @@ public class DemandeService {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
-
-    
 
     public static class DemandeListItem {
         private final Demande demande;
@@ -328,4 +351,96 @@ public class DemandeService {
     public Optional<Demande> findById(String idDemande) {
         return demandeRepository.findById(idDemande);
     }
+
+    public List<DemandeVue> getDemandesResume(String value) throws Exception {
+        Optional<DemandeVue> demandeRecherchee;
+        try {
+            demandeRecherchee = demandeVueRepository.findByIdDemande(value);
+            if (demandeRecherchee.isPresent()) {
+                String idDemandeur = demandeRecherchee.get().getIdDemandeur();
+
+                List<DemandeVue> demandes = demandeVueRepository.findByIdDemandeur(idDemandeur);
+
+                demandes.sort(
+                        Comparator.comparing(d -> !d.getIdDemande().equals(value)));
+
+                return demandes;
+            }
+        } catch (Exception e) {
+            throw new Exception("Erreur lors des recuperations des demandes" + e.getMessage());
+        }
+
+        return demandeVueRepository.findByNumeroPassport(value);
+    }
+
+    public Page<DemandeVue> getDemandesResume(String value, int page, int size) throws Exception {
+        try {
+            int pageNumber = Math.max(page, 0);
+            int pageSize = size > 0 ? size : 7;
+
+            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+            String cleanValue = value == null ? "" : value.trim();
+
+            Optional<DemandeVue> demandeRecherchee = demandeVueRepository.findByIdDemande(cleanValue);
+
+            if (demandeRecherchee.isPresent()) {
+                String idDemandeur = demandeRecherchee.get().getIdDemandeur();
+
+                Page<DemandeVue> demandesPage = demandeVueRepository.findByIdDemandeur(idDemandeur, pageable);
+
+                List<DemandeVue> demandes = new ArrayList<>(demandesPage.getContent());
+
+                demandes.sort(
+                        Comparator.comparing(d -> !d.getIdDemande().equals(cleanValue)));
+
+                return new PageImpl<>(
+                        demandes,
+                        pageable,
+                        demandesPage.getTotalElements());
+            }
+
+            return demandeVueRepository.findByNumeroPassport(cleanValue, pageable);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Erreur lors de la récupération des demandes : " + e.getClass().getSimpleName());
+        }
+    }
+
+    public Page<DemandeVue> getDemandesResumeDate(String date, int page, int size) throws Exception {
+        try {
+            int pageNumber = Math.max(page, 0);
+            int pageSize = size > 0 ? size : 7;
+
+            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+            LocalDate parsedDate;
+
+            if (date == null || date.isBlank()) {
+                parsedDate = LocalDate.now();
+            } else {
+                parsedDate = Util.parseDate(date);
+            }
+
+            return demandeVueRepository.findByCreatedAt(parsedDate, pageable);
+
+        } catch (Exception e) {
+            throw new Exception("Erreur lors de la récupération des demandes par date : " + e.getMessage());
+        }
+    }
+
+    public List<DemandeVue> getDemandesResumeDate(String date) throws Exception {
+        List<DemandeVue> demandes;
+        try {
+            LocalDate dates = Util.parseDate(date);
+            demandes = demandeVueRepository.findByCreatedAt(dates);
+
+        } catch (Exception e) {
+            throw new Exception("Erreur lors des recuperations des demandes" + e.getMessage());
+        }
+
+        return demandes;
+    }
+
 }

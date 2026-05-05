@@ -1,20 +1,25 @@
 package com.visa.bo.models.etatCivil;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.visa.bo.models.ClassMapTable;
+import com.visa.bo.models.passport.Passport;
 
 @Entity
 @Table(name = "demandeur")
 public class Demandeur {
-    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("demandeur", "id_demandeur", "DEM", 6) {};
+    private static final ClassMapTable ID_GENERATOR = new ClassMapTable("demandeur", "id_demandeur", "DEM", 6) {
+    };
 
     public static String nextId() {
         return ID_GENERATOR.generateId();
@@ -58,6 +63,10 @@ public class Demandeur {
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_situation_famille", nullable = false)
     private SituationFamille situationFamille;
+
+    @OneToMany(mappedBy = "demandeur")
+    @JsonIgnore
+    private List<Passport> passports;
 
     public String getIdDemandeur() {
         return idDemandeur;
