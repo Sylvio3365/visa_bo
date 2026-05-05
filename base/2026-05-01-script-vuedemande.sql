@@ -27,3 +27,5 @@ JOIN type_visa tv ON tv.id_type_visa = d.id_type_visa
 JOIN categorie_demande cd ON cd.id_categorie = d.id_categorie
 LEFT JOIN passport p ON p.id_passport = d.id_passport
 LEFT JOIN visa_transformable vt ON vt.id_visa_transformable = d.id_visa_transformable;
+
+select * from v_demande_resume where id_demande = 'DMD0000023';

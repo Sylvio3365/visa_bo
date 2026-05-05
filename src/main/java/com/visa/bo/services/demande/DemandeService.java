@@ -108,7 +108,7 @@ public class DemandeService {
         try {
             String ip = WifiManager.getCurrentIpAddress();
             String normalizedContextPath = normalizeContextPath(serverContextPath);
-            String url = "http://" + ip + ":" + serverPort +  "/demandes/" + idDemande;
+            String url = "http://" + ip + ":" + serverPort + "/demandes/" + idDemande;
             BufferedImage qrImage = QrCode.generateFromUrl(url);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ImageIO.write(qrImage, "PNG", outputStream);
@@ -380,22 +380,19 @@ public class DemandeService {
 
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
-            Optional<DemandeVue> demandeRecherchee = demandeVueRepository.findByIdDemande(value);
+            String cleanValue = value == null ? "" : value.trim();
+
+            Optional<DemandeVue> demandeRecherchee = demandeVueRepository.findByIdDemande(cleanValue);
 
             if (demandeRecherchee.isPresent()) {
                 String idDemandeur = demandeRecherchee.get().getIdDemandeur();
 
                 Page<DemandeVue> demandesPage = demandeVueRepository.findByIdDemandeur(idDemandeur, pageable);
 
-                /*
-                 * Important :
-                 * ce tri met la demande recherchée en premier uniquement
-                 * dans la page actuelle.
-                 */
-                List<DemandeVue> demandes = demandesPage.getContent();
+                List<DemandeVue> demandes = new ArrayList<>(demandesPage.getContent());
 
                 demandes.sort(
-                        Comparator.comparing(d -> !d.getIdDemande().equals(value)));
+                        Comparator.comparing(d -> !d.getIdDemande().equals(cleanValue)));
 
                 return new PageImpl<>(
                         demandes,
@@ -403,10 +400,11 @@ public class DemandeService {
                         demandesPage.getTotalElements());
             }
 
-            return demandeVueRepository.findByNumeroPassport(value, pageable);
+            return demandeVueRepository.findByNumeroPassport(cleanValue, pageable);
 
         } catch (Exception e) {
-            throw new Exception("Erreur lors de la récupération des demandes : " + e.getMessage());
+            e.printStackTrace();
+            throw new Exception("Erreur lors de la récupération des demandes : " + e.getClass().getSimpleName());
         }
     }
 
