@@ -15,6 +15,7 @@ insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('
 insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'French');
 insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'Comorian');
 insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'Mauritian');
+insert into nationalite (id_nationalite, libelle) VALUES ('NA00000' || nextval('seq_nationalite'), 'Japonais');
 
 insert into statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'dossier cree');
 insert into statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'scanne valider');

@@ -8,6 +8,7 @@
             <div class="brand-title">${headerTitle}</div>
             <div class="brand-subtitle">${headerSubtitle}</div>
         </div>
+        <h1>ETU003263 - ETU003365 - ETU003356</h1>
     </div>
     <div class="bo-header-actions">
         <span class="status-chip"><span class="status-dot"></span>En ligne</span>
