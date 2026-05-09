@@ -19,6 +19,7 @@ public class DemandeForm {
     private LocalDate dtn;
     private String idNationalite;
     private String idSituationFamille;
+    private String idGenre;
 
     // passport
     private String idPassport;

@@ -102,6 +102,17 @@
                                             </c:forEach>
                                         </select>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="idGenre" class="form-label"><i class="fas fa-venus-mars me-2"></i>Genre <c:if test="${requiredFieldMap['idGenre']}"><span class="text-danger">*</span></c:if></label>
+                                        <select id="idGenre" name="idGenre" class="form-select" >
+                                            <option value="">-- Sélectionner --</option>
+                                            <c:forEach var="g" items="${genres}">
+                                                <option value="${g.idGenre}" ${demandeForm.idGenre eq g.idGenre ? 'selected' : '' }>
+                                                    ${g.libelle}
+                                                </option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div class="mb-4">

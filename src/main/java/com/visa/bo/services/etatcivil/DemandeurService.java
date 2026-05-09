@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.visa.bo.dto.demande.DemandeForm;
 import com.visa.bo.exceptions.ValidationException;
 import com.visa.bo.models.etatCivil.Demandeur;
+import com.visa.bo.models.etatCivil.Genre;
 import com.visa.bo.models.etatCivil.Nationalite;
 import com.visa.bo.models.etatCivil.SituationFamille;
 import com.visa.bo.models.demande.CategorieDemande;
@@ -43,6 +44,7 @@ import com.visa.bo.models.visa.Visa;
 import com.visa.bo.repositories.etatcivil.DemandeurRepository;
 import com.visa.bo.repositories.etatcivil.NationaliteRepository;
 import com.visa.bo.repositories.etatcivil.SituationFamilleRepository;
+import com.visa.bo.repositories.etatcivil.GenreRepository;
 import com.visa.bo.services.demande.ChampsValidationService;
 
 @Service
@@ -59,6 +61,9 @@ public class DemandeurService {
 
     @Autowired
     private SituationFamilleRepository situationFamilleRepository;
+
+    @Autowired
+    private GenreRepository genreRepository;
 
     @Autowired
     private DemandeRepository demandeRepository;
@@ -310,6 +315,14 @@ public class DemandeurService {
 
             SituationFamille situationFamille = situationFamilleOpt.get();
             demandeur.setSituationFamille(situationFamille);
+        }
+
+        if (dm.getIdGenre() != null && !dm.getIdGenre().isBlank()) {
+            Optional<Genre> genreOpt = genreRepository.findById(dm.getIdGenre());
+            if (!genreOpt.isPresent()) {
+                throw new IllegalArgumentException("Genre introuvable: " + dm.getIdGenre());
+            }
+            demandeur.setGenre(genreOpt.get());
         }
 
         // Mapper tous les champs

@@ -100,6 +100,10 @@
                                         <span class="info-label">Situation familiale</span>
                                         <span class="info-value">${searchResult.demandeur.situationFamille.libelle}</span>
                                     </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Genre</span>
+                                        <span class="info-value">${searchResult.demandeur.genre.libelle}</span>
+                                    </div>
                                 </div>
                             </div>
 
