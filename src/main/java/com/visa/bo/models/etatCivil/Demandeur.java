@@ -56,6 +56,12 @@ public class Demandeur {
     @Column(name = "updated_at")
     private LocalDate updatedAt;
 
+    @Column(name = "photo", columnDefinition = "TEXT")
+    private String photo;
+
+    @Column(name = "signature", columnDefinition = "TEXT")
+    private String signature;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_nationalite", nullable = false)
     private Nationalite nationalite;
@@ -63,6 +69,10 @@ public class Demandeur {
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_situation_famille", nullable = false)
     private SituationFamille situationFamille;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_genre", nullable = false)
+    private Genre genre;
 
     @OneToMany(mappedBy = "demandeur")
     @JsonIgnore
@@ -148,6 +158,22 @@ public class Demandeur {
         this.updatedAt = updatedAt;
     }
 
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
     public Nationalite getNationalite() {
         return nationalite;
     }
@@ -162,5 +188,13 @@ public class Demandeur {
 
     public void setSituationFamille(SituationFamille situationFamille) {
         this.situationFamille = situationFamille;
+    }
+
+    public Genre getGenre() {
+        return genre;
+    }
+
+    public void setGenre(Genre genre) {
+        this.genre = genre;
     }
 }

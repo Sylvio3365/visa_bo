@@ -41,6 +41,7 @@ import com.visa.bo.services.demande.DemandeService;
 import com.visa.bo.services.demande.DemandeurSearchService;
 import com.visa.bo.services.etatcivil.NationaliteService;
 import com.visa.bo.services.etatcivil.SituationFamilleService;
+import com.visa.bo.services.etatcivil.GenreService;
 import com.visa.bo.services.etatcivil.DemandeurService;
 import com.visa.bo.services.piece.PieceService;
 import com.visa.bo.services.passport.PassportService;
@@ -80,6 +81,9 @@ public class DemandeController {
     private SituationFamilleService situationFamilleService;
 
     @Autowired
+    private GenreService genreService;
+
+    @Autowired
     private DemandeurService demandeurService;
 
     @Autowired
@@ -111,6 +115,9 @@ public class DemandeController {
 
     @Autowired
     private DemandeRepository demandeRepository;
+
+    @Autowired
+    private com.visa.bo.repositories.etatcivil.DemandeurRepository demandeurRepository;
 
     @Autowired
     private StatutRepository statutRepository;
@@ -190,11 +197,45 @@ public class DemandeController {
             nouveauStatut.setStatut(statutOpt.get());
             nouveauStatut.setDate(LocalDate.now());
             statutDemandeRepository.save(nouveauStatut);
-            redirectAttributes.addFlashAttribute("successMessage", "Statut mis a jour : Demande de.");
+            redirectAttributes.addFlashAttribute("successMessage", "Statut mis a jour : Scan validé.");
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "Statut ST000002 introuvable.");
         }
 
+        return "redirect:/demandes/" + idDemande;
+    }
+
+    @PostMapping("/demandes/valider-photo-signature")
+    public String validerPhotoSignature(
+            @RequestParam("idDemande") String idDemande,
+            @RequestParam(value = "photoData", required = false) String photoData,
+            @RequestParam(value = "signatureData", required = false) String signatureData,
+            RedirectAttributes redirectAttributes) {
+        
+        Demande demande = demandeRepository.findById(idDemande).orElse(null);
+        if (demande != null && demande.getDemandeur() != null) {
+            Demandeur demandeur = demande.getDemandeur();
+            if (photoData != null && !photoData.isEmpty()) {
+                demandeur.setPhoto(photoData);
+            }
+            if (signatureData != null && !signatureData.isEmpty()) {
+                demandeur.setSignature(signatureData);
+            }
+            demandeurRepository.save(demandeur);
+        }
+
+        Optional<com.visa.bo.models.demande.Statut> statutOpt = statutRepository.findById("ST000007");
+        if (statutOpt.isPresent()) {
+            com.visa.bo.models.demande.StatutDemande nouveauStatut = new com.visa.bo.models.demande.StatutDemande();
+            nouveauStatut.setIdStatutDemande(com.visa.bo.models.demande.StatutDemande.nextId());
+            nouveauStatut.setDemande(demande);
+            nouveauStatut.setStatut(statutOpt.get());
+            nouveauStatut.setDate(LocalDate.now());
+            statutDemandeRepository.save(nouveauStatut);
+            redirectAttributes.addFlashAttribute("successMessage", "Photo et signature enregistrées. Statut mis à jour : Photo et signature terminés (ST000007).");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Statut ST000007 introuvable.");
+        }
         return "redirect:/demandes/" + idDemande;
     }
 
@@ -402,6 +443,8 @@ public class DemandeController {
                 form.setIdNationalite(dm.getNationalite().getIdNationalite());
             if (dm.getSituationFamille() != null)
                 form.setIdSituationFamille(dm.getSituationFamille().getIdSituationFamille());
+            if (dm.getGenre() != null)
+                form.setIdGenre(dm.getGenre().getIdGenre());
         }
 
         // Données Passport
@@ -843,6 +886,9 @@ public class DemandeController {
             form.setEmail(demandeur.getEmail());
             form.setIdNationalite(demandeur.getNationalite().getIdNationalite());
             form.setIdSituationFamille(demandeur.getSituationFamille().getIdSituationFamille());
+            if (demandeur.getGenre() != null) {
+                form.setIdGenre(demandeur.getGenre().getIdGenre());
+            }
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "Demandeur non trouvé avec l'ID : " + searchId);
         }
@@ -861,8 +907,9 @@ public class DemandeController {
         model.addAttribute("currentStep", form.getCurrentStep());
         model.addAttribute("nationalites", nationaliteService.findAll());
         model.addAttribute("situation_familles", situationFamilleService.findAll());
+        model.addAttribute("genres", genreService.findAll());
         addRequiredFieldMap(model, "nom", "prenom", "nomJeuneFille", "dtn", "email", "telephone",
-                "idNationalite", "idSituationFamille", "adresseMada");
+                "idNationalite", "idSituationFamille", "idGenre", "adresseMada");
         return "layout/main";
     }
 
@@ -877,6 +924,7 @@ public class DemandeController {
             @RequestParam String dtn,
             @RequestParam String idNationalite,
             @RequestParam String idSituationFamille,
+            @RequestParam String idGenre,
             RedirectAttributes redirectAttributes) {
         form.setNom(nom);
         form.setPrenom(prenom);
@@ -886,6 +934,7 @@ public class DemandeController {
         form.setAdresseMada(adresseMada);
         form.setIdNationalite(idNationalite);
         form.setIdSituationFamille(idSituationFamille);
+        form.setIdGenre(idGenre);
 
         try {
             if (dtn != null && dtn != "") {

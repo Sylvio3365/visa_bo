@@ -388,10 +388,12 @@
                                                 </button>
                                             </form>
                                         </c:if>
-                                        <c:url var="editUrl" value="/demandes/${item.demande.idDemande}/modifier" />
-                                        <a class="btn-edit-icon" href="${editUrl}" aria-label="Modifier" title="Modifier">
-                                            <i class="fas fa-edit" aria-hidden="true"></i>
-                                        </a>
+                                        <c:if test="${item.idStatut eq 'ST000001'}">
+                                            <c:url var="editUrl" value="/demandes/${item.demande.idDemande}/modifier" />
+                                            <a class="btn-edit-icon" href="${editUrl}" aria-label="Modifier" title="Modifier">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                            </a>
+                                        </c:if>
                                         <a class="btn-detail-icon" href="${detailUrl}" aria-label="Voir detail" title="Voir detail">
                                             <i class="fas fa-eye" aria-hidden="true"></i>
                                         </a>

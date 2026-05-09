@@ -210,6 +210,29 @@
             border: 1px solid #e2e8f0;
             border-radius: 0.5rem;
         }
+
+        .btn-scan-valid-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 1rem;
+            height: 2.2rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(25, 129, 227, 0.35);
+            color: #1981e3;
+            background: rgba(25, 129, 227, 0.08);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .btn-scan-valid-icon:hover {
+            background: #1981e3;
+            color: #fff;
+            transform: translateY(-2px);
+        }
     </style>
 
     <div class="container nt-page">
@@ -219,17 +242,27 @@
                 <p class="nt-page-subtitle">Consultation des informations principales d'une demande.</p>
             </div>
             <div class="d-flex gap-2">
-                <c:if test="${demandeDetail.scanComplet && demandeDetail.idStatut ne 'ST000002'}">
+                <c:if test="${demandeDetail.idStatut eq 'ST000001' or demandeDetail.idStatut eq 'ST000007'}">
+                    <button type="button" class="btn d-inline-flex align-items-center gap-2 fw-bold px-3 border-0 shadow-sm"
+                       style="background: #0ea5e9; color: #fff; border-radius: 0.5rem; height: 2.2rem; font-size: 0.85rem;"
+                       onclick="openPhotoSignatureModal()"
+                       title="Passer au signature et photo d'identite">
+                        <i class="fas fa-camera"></i>
+                        Signature et Photo
+                    </button>
+                </c:if>
+
+                <c:if test="${demandeDetail.scanComplet && demandeDetail.idStatut eq 'ST000007'}">
                     <form action="${pageContext.request.contextPath}/demandes/valider-scan" method="POST" style="display:inline;">
                         <input type="hidden" name="idDemande" value="${demande.idDemande}">
-                        <button type="submit" class="d-inline-flex align-items-center justify-content-center border-0 shadow-sm" 
-                             style="width: 2.5rem; height: 2.5rem; border-radius: 0.8rem; background: rgba(25, 129, 227, 0.1); color: #1981e3; cursor: pointer;"
+                        <button type="submit" class="btn-scan-valid-icon border-0 shadow-sm" 
                              title="Valider scan (ST000002)">
-                            <i class="fas fa-check-circle fs-4"></i>Terminer scan
+                            <i class="fas fa-check-circle"></i>
+                            Terminer scan
                         </button>
                     </form>
                 </c:if>
-                <c:if test="${isModifiable}">
+                <c:if test="${isModifiable and demandeDetail.idStatut eq 'ST000001'}">
                     <!-- <a href="${pageContext.request.contextPath}/demandes/${demande.idDemande}/historique"
                         class="btn d-inline-flex align-items-center gap-2 fw-bold px-4 border-0 shadow-sm"
                         style="background: #1e293b; color: #fff; border-radius: 0.8rem;"
@@ -237,13 +270,13 @@
                         <i class="fas fa-history"></i> Historique
                     </a> -->
                     <a href="${pageContext.request.contextPath}/demandes/${demande.idDemande}/modifier"
-                        class="btn d-inline-flex align-items-center gap-2 fw-bold px-4 border-0 shadow-sm"
-                        style="background: #f59e0b; color: #fff; border-radius: 0.8rem;">
+                        class="btn d-inline-flex align-items-center gap-2 fw-bold px-3 border-0 shadow-sm"
+                        style="background: #f59e0b; color: #fff; border-radius: 0.5rem; height: 2.2rem; font-size: 0.85rem;">
                         <i class="fas fa-edit"></i> Modifier
                     </a>
                 </c:if>
-                <a class="btn btn-outline-secondary d-inline-flex align-items-center px-4 border-0 shadow-sm"
-                    href="${finalDemandesBackUrl}" style="background: #f1f5f9; color: #475569; border-radius: 0.8rem;">
+                <a class="btn btn-outline-secondary d-inline-flex align-items-center px-3 border-0 shadow-sm"
+                    href="${finalDemandesBackUrl}" style="background: #f1f5f9; color: #475569; border-radius: 0.5rem; height: 2.2rem; font-size: 0.85rem;">
                     <i class="fas fa-arrow-left me-2"></i>Retour
                 </a>
             </div>
@@ -414,8 +447,17 @@
                                     </c:choose>
                                 </div>
                             </div>
-                            <div class="col-md-6 col-lg-4">
-                                <label class="form-label mb-1">Telephone</label>
+                            <div class="col-md-6 col-lg-4">                                <label class="form-label mb-1">Genre</label>
+                                <div class="text-body text-break lh-sm">
+                                    <c:choose>
+                                        <c:when
+                                            test="${not empty demande and not empty demande.demandeur and not empty demande.demandeur.genre}">
+                                            ${demande.demandeur.genre.libelle}</c:when>
+                                        <c:otherwise>Non renseigne</c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">                                <label class="form-label mb-1">Telephone</label>
                                 <div class="text-body text-break lh-sm">
                                     <c:choose>
                                         <c:when
@@ -445,6 +487,50 @@
                                             ${demande.demandeur.adresseMada}</c:when>
                                         <c:otherwise>Non renseigne</c:otherwise>
                                     </c:choose>
+                                </div>
+                            </div>
+                            <!-- Biometrie affichage -->
+                            <div class="col-12 mt-4">
+                                <div class="p-3 rounded-3" style="background: rgba(12, 138, 123, 0.03); border: 1px solid rgba(12, 138, 123, 0.1);">
+                                    <h5 class="nt-title mb-3" style="font-size: 1rem;"><i class="fas fa-fingerprint me-2"></i>Donnees biometriques</h5>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border-0 shadow-sm">
+                                                <div class="card-body text-center p-3">
+                                                    <label class="form-label d-block fw-bold text-muted small mb-2">PHOTO D'IDENTITE</label>
+                                                    <c:choose>
+                                                        <c:when test="${not empty demande.demandeur.photo}">
+                                                            <img src="${demande.demandeur.photo}" alt="Photo" class="img-fluid rounded border" style="max-height: 200px; width: auto; object-fit: contain; border-color: #0c8a7b !important;">
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <div class="py-4 text-muted">
+                                                                <i class="fas fa-camera-retro fa-2x mb-2 d-block opacity-25"></i>
+                                                                <span class="small">Non disponible</span>
+                                                            </div>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border-0 shadow-sm">
+                                                <div class="card-body text-center p-3">
+                                                    <label class="form-label d-block fw-bold text-muted small mb-2">SIGNATURE</label>
+                                                    <c:choose>
+                                                        <c:when test="${not empty demande.demandeur.signature}">
+                                                            <img src="${demande.demandeur.signature}" alt="Signature" class="img-fluid rounded border" style="max-height: 200px; width: auto; object-fit: contain; background: #fff; border-color: #0c8a7b !important;">
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <div class="py-4 text-muted">
+                                                                <i class="fas fa-pen-nib fa-2x mb-2 d-block opacity-25"></i>
+                                                                <span class="small">Non disponible</span>
+                                                            </div>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -686,6 +772,61 @@
     </div>
 
     </div>
+    <!-- MODAL PHOTO & SIGNATURE -->
+    <div class="modal fade" id="photoSignatureModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+                <div class="modal-header border-0 bg-light p-4">
+                    <h5 class="modal-title nt-title"><i class="fas fa-camera me-2"></i>Photo et Signature</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">Photo d'identite</h6>
+                            <div class="mb-3 border rounded bg-dark position-relative overflow-hidden" style="height: 300px;">
+                                <video id="webcam" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                <canvas id="photoCanvas" style="display: none; width: 100%; height: 100%; object-fit: cover;"></canvas>
+                                <div id="no-webcam" class="position-absolute translate-middle top-50 start-50 text-white text-center" style="display: none;">
+                                    <i class="fas fa-video-slash fa-3x mb-2"></i>
+                                    <p>Webcam non detectee</p>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button id="captureBtn" onclick="capturePhoto()" class="btn btn-primary flex-grow-1" style="background: var(--accent, #0c8a7b); border: none;">
+                                    <i class="fas fa-camera me-2"></i>Capturer
+                                </button>
+                                <button id="retakeBtn" onclick="retakePhoto()" class="btn btn-outline-secondary flex-grow-1" style="display: none;">
+                                    <i class="fas fa-sync me-2"></i>Reprendre
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">Signature</h6>
+                            <div class="mb-3 border rounded bg-white position-relative" style="height: 300px; cursor: crosshair;">
+                                <canvas id="signaturePad" width="500" height="300" style="width: 100%; height: 100%;"></canvas>
+                                <button onclick="clearSignature()" class="btn btn-sm btn-outline-danger position-absolute" style="top: 10px; right: 10px;">
+                                    <i class="fas fa-eraser"></i> Effacer
+                                </button>
+                            </div>
+                            <p class="text-muted small">Signez avec votre souris ou tablette.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4">
+                    <form action="${pageContext.request.contextPath}/demandes/valider-photo-signature" method="POST" class="w-100">
+                        <input type="hidden" name="idDemande" value="${demande.idDemande}">
+                        <input type="hidden" name="photoData" id="photoData">
+                        <input type="hidden" name="signatureData" id="signatureData">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" style="background: #1981e3; border: none;">
+                            <i class="fas fa-check-circle me-2"></i>Valider et Terminer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL SCAN / IMPORT -->
     <div class="modal fade" id="scanModal" tabindex="-1" aria-labelledby="scanModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -806,6 +947,117 @@
             var modalEl = document.getElementById('scanModal');
             var myModal = new bootstrap.Modal(modalEl);
             myModal.show();
+        }
+
+        // --- PHOTO & SIGNATURE MODAL LOGIC ---
+        function openPhotoSignatureModal() {
+            const modalEl = document.getElementById('photoSignatureModal');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+            initWebcam();
+            initSignaturePad();
+            modalEl.addEventListener('hidden.bs.modal', stopWebcam);
+        }
+
+        let stream = null;
+        function initWebcam() {
+            const video = document.getElementById('webcam');
+            const noWebcam = document.getElementById('no-webcam');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+                    .then(function(s) {
+                        stream = s;
+                        video.srcObject = stream;
+                        video.style.display = 'block';
+                        noWebcam.style.display = 'none';
+                    })
+                    .catch(function(err) {
+                        video.style.display = 'none';
+                        noWebcam.style.display = 'block';
+                    });
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('webcam');
+            const canvas = document.getElementById('photoCanvas');
+            const captureBtn = document.getElementById('captureBtn');
+            const retakeBtn = document.getElementById('retakeBtn');
+            const photoDataInput = document.getElementById('photoData');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            photoDataInput.value = canvas.toDataURL('image/png');
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'inline-block';
+        }
+
+        function retakePhoto() {
+            document.getElementById('webcam').style.display = 'block';
+            document.getElementById('photoCanvas').style.display = 'none';
+            document.getElementById('captureBtn').style.display = 'inline-block';
+            document.getElementById('retakeBtn').style.display = 'none';
+            document.getElementById('photoData').value = '';
+        }
+
+        let painting = false;
+        function initSignaturePad() {
+            const canvas = document.getElementById('signaturePad');
+            const ctx = canvas.getContext('2d');
+            const dataInput = document.getElementById('signatureData');
+            
+            // Clear if already has content
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (clientX - rect.left) * (canvas.width / rect.width),
+                    y: (clientY - rect.top) * (canvas.height / rect.height)
+                };
+            }
+
+            canvas.onmousedown = canvas.ontouchstart = (e) => {
+                painting = true;
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            };
+
+            canvas.onmousemove = canvas.ontouchmove = (e) => {
+                if (!painting) return;
+                e.preventDefault();
+                const pos = getPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#000';
+                ctx.stroke();
+            };
+
+            canvas.onmouseup = canvas.ontouchend = () => {
+                painting = false;
+                dataInput.value = canvas.toDataURL('image/png');
+            };
+        }
+
+        function clearSignature() {
+            const canvas = document.getElementById('signaturePad');
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('signatureData').value = '';
+        }
+
+        function stopWebcam() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
         }
 
         function viewDocument(libelle, filename) {
