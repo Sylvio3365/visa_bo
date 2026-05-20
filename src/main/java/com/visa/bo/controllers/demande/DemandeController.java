@@ -224,7 +224,7 @@ public class DemandeController {
             demandeurRepository.save(demandeur);
         }
 
-        Optional<com.visa.bo.models.demande.Statut> statutOpt = statutRepository.findById("ST000007");
+        Optional<com.visa.bo.models.demande.Statut> statutOpt = statutRepository.findById("ST000004");
         if (statutOpt.isPresent()) {
             com.visa.bo.models.demande.StatutDemande nouveauStatut = new com.visa.bo.models.demande.StatutDemande();
             nouveauStatut.setIdStatutDemande(com.visa.bo.models.demande.StatutDemande.nextId());
@@ -232,9 +232,9 @@ public class DemandeController {
             nouveauStatut.setStatut(statutOpt.get());
             nouveauStatut.setDate(LocalDate.now());
             statutDemandeRepository.save(nouveauStatut);
-            redirectAttributes.addFlashAttribute("successMessage", "Photo et signature enregistrées. Statut mis à jour : Photo et signature terminés (ST000007).");
+            redirectAttributes.addFlashAttribute("successMessage", "Photo et signature enregistrées. Statut mis à jour : Photo et signature terminés (ST000004).");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Statut ST000007 introuvable.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Statut ST000004 introuvable.");
         }
         return "redirect:/demandes/" + idDemande;
     }
@@ -416,6 +416,28 @@ public class DemandeController {
         return "layout/main";
     }
 
+    @GetMapping("/demandes/{idDemande}/accuse-reception")
+    public String accuseReception(@PathVariable("idDemande") String idDemande, Model model, RedirectAttributes redirectAttributes) {
+        if (idDemande == null || idDemande.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Identifiant demande invalide.");
+            return "redirect:/demandes";
+        }
+
+        Optional<DemandeService.DemandeDetail> demandeDetailOpt = demandeService.findDemandeDetail(idDemande);
+        if (!demandeDetailOpt.isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Demande introuvable: " + idDemande);
+            return "redirect:/demandes";
+        }
+
+        DemandeService.DemandeDetail demandeDetail = demandeDetailOpt.get();
+        Demande demande = demandeDetail.getDemande();
+
+        model.addAttribute("demande", demande);
+        model.addAttribute("demandeDetail", demandeDetail);
+        
+        return "pages/demande/accuse-reception";
+    }
+
     @GetMapping("/demandes/{idDemande}/modifier")
     public String modifierDemande(@PathVariable("idDemande") String idDemande, Model model,
             RedirectAttributes redirectAttributes) {
@@ -428,7 +450,6 @@ public class DemandeController {
         Demande d = demandeOpt.get();
         DemandeForm form = new DemandeForm();
 
-        // Données Demandeur
         Demandeur dm = d.getDemandeur();
         if (dm != null) {
             form.setIdDemandeur(dm.getIdDemandeur());

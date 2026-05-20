@@ -42,10 +42,7 @@ INSERT INTO nationalite (id_nationalite, libelle, flag) VALUES ('NA00000' || nex
 INSERT INTO statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'dossier cree');               -- ST000001
 INSERT INTO statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'scanne valider');             -- ST000002
 INSERT INTO statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'visa approve');               -- ST000003
-INSERT INTO statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'en attente paiement');        -- ST000004
-INSERT INTO statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'dossier incomplet');          -- ST000005
-INSERT INTO statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'refuse');                     -- ST000006
-INSERT INTO statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'Photo et signature terminés');-- ST000007
+INSERT INTO statut (id_statut, libelle) VALUES ('ST00000' || nextval('seq_statut'), 'Photo et signature terminés');-- ST000004
 
 -- =========================================================================
 -- 7. REQUIRED DOCUMENTS / PIECES (Linked to types of visa where applicable)
