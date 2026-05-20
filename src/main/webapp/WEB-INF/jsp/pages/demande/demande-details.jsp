@@ -242,7 +242,7 @@
                 <p class="nt-page-subtitle">Consultation des informations principales d'une demande.</p>
             </div>
             <div class="d-flex gap-2">
-                <c:if test="${demandeDetail.idStatut eq 'ST000001' or demandeDetail.idStatut eq 'ST000007'}">
+                <c:if test="${demandeDetail.idStatut eq 'ST000001' or demandeDetail.idStatut eq 'ST000004'}">
                     <button type="button" class="btn d-inline-flex align-items-center gap-2 fw-bold px-3 border-0 shadow-sm"
                        style="background: #0ea5e9; color: #fff; border-radius: 0.5rem; height: 2.2rem; font-size: 0.85rem;"
                        onclick="openPhotoSignatureModal()"
@@ -252,7 +252,7 @@
                     </button>
                 </c:if>
 
-                <c:if test="${demandeDetail.scanComplet && demandeDetail.idStatut eq 'ST000007'}">
+                <c:if test="${demandeDetail.scanComplet && demandeDetail.idStatut eq 'ST000004'}">
                     <form action="${pageContext.request.contextPath}/demandes/valider-scan" method="POST" style="display:inline;">
                         <input type="hidden" name="idDemande" value="${demande.idDemande}">
                         <button type="submit" class="btn-scan-valid-icon border-0 shadow-sm" 
