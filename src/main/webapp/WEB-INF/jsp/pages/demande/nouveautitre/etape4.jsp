@@ -20,6 +20,13 @@
 
                             <form method="POST" action="${pageContext.request.contextPath}/demande/etape4">
                                 <div class="mb-4">
+                                    <div class="form-check mb-4 pb-2 border-bottom">
+                                        <input class="form-check-input" type="checkbox" id="selectAllCommunes">
+                                        <label class="form-check-label fw-bold text-secondary" for="selectAllCommunes" style="cursor: pointer;">
+                                            <i class="fas fa-tasks me-2 text-primary"></i>Tout cocher / décocher
+                                        </label>
+                                    </div>
+
                                     <c:forEach var="piece" items="${piecesCommunas}">
                                         <div class="form-check mb-3">
                                             <input class="form-check-input" type="checkbox" id="piece_${piece.idPiece}" name="piecesCommunesIds"
@@ -31,7 +38,7 @@
                                                 </c:if>
                                             >
                                             <label class="form-check-label" for="piece_${piece.idPiece}">
-                                                <i class="fas fa-file me-2"></i>${piece.libelle} <c:if test="${piece.obligatoire}"><span class="text-danger">*</span></c:if>
+                                                <i class="fas fa-file me-2 text-muted"></i>${piece.libelle} <c:if test="${piece.obligatoire}"><span class="text-danger">*</span></c:if>
                                             </label>
                                         </div>
                                     </c:forEach>
@@ -57,4 +64,30 @@
             if (errorMessage.trim() !== '') {
                 alert(errorMessage);
             }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const selectAll = document.getElementById('selectAllCommunes');
+                const checkboxes = document.querySelectorAll('input[name="piecesCommunesIds"]');
+
+                if (selectAll && checkboxes.length > 0) {
+                    selectAll.addEventListener('change', function() {
+                        checkboxes.forEach(cb => {
+                            cb.checked = selectAll.checked;
+                        });
+                    });
+
+                    function updateSelectAll() {
+                        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                        selectAll.checked = allChecked;
+                    }
+
+                    checkboxes.forEach(cb => {
+                        cb.addEventListener('change', updateSelectAll);
+                    });
+
+                    // Set initial state
+                    updateSelectAll();
+                }
+            });
         </script>
+

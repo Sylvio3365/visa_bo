@@ -242,7 +242,26 @@
                 <p class="nt-page-subtitle">Consultation des informations principales d'une demande.</p>
             </div>
             <div class="d-flex gap-2">
-                <c:if test="${demandeDetail.idStatut eq 'ST000001' or demandeDetail.idStatut eq 'ST000007'}">
+                <c:if test="${demandeDetail.idStatut eq 'ST000002'}">
+                    <button type="button" class="btn d-inline-flex align-items-center gap-2 fw-bold px-3 border-0 shadow-sm"
+                       style="background: #6366f1; color: #fff; border-radius: 0.5rem; height: 2.2rem; font-size: 0.85rem;"
+                       onclick="openAllDocsModal()"
+                       title="Apercu des documents">
+                        <i class="fas fa-file-pdf"></i>
+                        Apercu documents
+                    </button>
+
+                    <a href="${pageContext.request.contextPath}/demandes/${demande.idDemande}/accuse-reception" 
+                       target="_blank"
+                       class="btn d-inline-flex align-items-center gap-2 fw-bold px-3 border-0 shadow-sm"
+                       style="background: #10b981; color: #fff; border-radius: 0.5rem; height: 2.2rem; font-size: 0.85rem;"
+                       title="Telecharger Accuse de reception">
+                        <i class="fas fa-download"></i>
+                        Accuse reception
+                    </a>
+                </c:if>
+
+                <c:if test="${demandeDetail.idStatut eq 'ST000001' or demandeDetail.idStatut eq 'ST000004'}">
                     <button type="button" class="btn d-inline-flex align-items-center gap-2 fw-bold px-3 border-0 shadow-sm"
                        style="background: #0ea5e9; color: #fff; border-radius: 0.5rem; height: 2.2rem; font-size: 0.85rem;"
                        onclick="openPhotoSignatureModal()"
@@ -252,7 +271,7 @@
                     </button>
                 </c:if>
 
-                <c:if test="${demandeDetail.scanComplet && demandeDetail.idStatut eq 'ST000007'}">
+                <c:if test="${demandeDetail.scanComplet && demandeDetail.idStatut eq 'ST000004'}">
                     <form action="${pageContext.request.contextPath}/demandes/valider-scan" method="POST" style="display:inline;">
                         <input type="hidden" name="idDemande" value="${demande.idDemande}">
                         <button type="submit" class="btn-scan-valid-icon border-0 shadow-sm" 
@@ -891,6 +910,60 @@
         </div>
     </div>
 
+    <!-- MODAL ALL DOCUMENTS -->
+    <div class="modal fade" id="allDocsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+                <div class="modal-header border-0 bg-light p-4">
+                    <h5 class="modal-title nt-title"><i class="fas fa-file-pdf me-2"></i>Apercu de tous les documents</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- Photo d'identite -->
+                    <div class="mb-5 text-center">
+                        <h4 class="fw-bold mb-3 border-bottom pb-2">Photo d'identite</h4>
+                        <c:if test="${not empty demande.demandeur.photo}">
+                            <img src="${demande.demandeur.photo}" alt="Photo didentite" style="max-height: 300px; border: 2px solid #ccc; padding: 5px;">
+                        </c:if>
+                        <c:if test="${empty demande.demandeur.photo}">
+                            <p class="text-muted">Aucune photo disponible.</p>
+                        </c:if>
+                    </div>
+
+                    <!-- Pieces communes -->
+                    <div class="mb-4">
+                        <h3 class="fw-bold text-uppercase" style="color: var(--accent-strong, #0a6d61);">Piece commune</h3>
+                    </div>
+                    <c:forEach var="piece" items="${piecesCommunes}">
+                        <c:if test="${piece.uploade and piece.libelle ne '02 photos d’identité' and piece.libelle ne '02 photos d\\'identité'}">
+                            <div class="mb-5">
+                                <h5 class="fw-bold mb-2">
+                                    Document : ${piece.libelle}
+                                </h5>
+                                <iframe src="${pageContext.request.contextPath}/demandes/document/${piece.chemin}" style="width: 100%; height: 800px; border: 1px solid #ddd; border-radius: 8px;"></iframe>
+                            </div>
+                        </c:if>
+                    </c:forEach>
+
+                    <!-- Pieces complementaires -->
+                    <div class="mb-4 mt-5">
+                        <h3 class="fw-bold text-uppercase" style="color: var(--accent-strong, #0a6d61);">Piece</h3>
+                    </div>
+                    <c:forEach var="piece" items="${piecesComplementaires}">
+                        <c:if test="${piece.uploade}">
+                            <div class="mb-5">
+                                <h5 class="fw-bold mb-2">
+                                    Document : ${piece.libelle}
+                                </h5>
+                                <iframe src="${pageContext.request.contextPath}/demandes/document/${piece.chemin}" style="width: 100%; height: 800px; border: 1px solid #ddd; border-radius: 8px;"></iframe>
+                            </div>
+                        </c:if>
+                    </c:forEach>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- QR OVERLAY -->
     <div class="qr-overlay" id="qrOverlay">
         <div class="qr-overlay-content">
@@ -939,6 +1012,12 @@
                 });
             }
         });
+
+        function openAllDocsModal() {
+            var modalEl = document.getElementById('allDocsModal');
+            var myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
+        }
 
         function openScanModal(libelle, id) {
             document.getElementById('targetPieceName').innerText = libelle;
